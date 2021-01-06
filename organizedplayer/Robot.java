@@ -3,6 +3,8 @@ import battlecode.common.*;
 
 public class Robot {
     static RobotController rc;
+    static Comms comms;
+    static Nav nav;
 
     static final RobotType[] spawnableRobot = {
         RobotType.POLITICIAN,
@@ -21,30 +23,22 @@ public class Robot {
         Direction.NORTHWEST,
     };
 
-    int turnCount;
+    int robotAge;
 
     public Robot(RobotController r){
         this.rc = r;
+        this.comms = new Comms(rc);
+        this.nav = new Nav(rc);
     }
 
     public void takeTurn() throws GameActionException{
-        turnCount += 1;
+        robotAge += 1;
     }
 
-    /**
-     * Returns a random Direction.
-     *
-     * @return a random Direction
-     */
     Direction randomDirection() {
         return directions[(int) (Math.random() * directions.length)];
     }
 
-    /**
-     * Returns a random spawnable RobotType
-     *
-     * @return a random RobotType
-     */
     RobotType randomSpawnableRobotType() {
         return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
     }

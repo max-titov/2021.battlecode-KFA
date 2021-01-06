@@ -8,6 +8,7 @@ public class Politician extends Robot {
     }
 
     public void takeTurn() throws GameActionException{
+        super.takeTurn();
         Team enemy = rc.getTeam().opponent();
         int actionRadius = rc.getType().actionRadiusSquared;
         RobotInfo[] attackable = rc.senseNearbyRobots(actionRadius, enemy);

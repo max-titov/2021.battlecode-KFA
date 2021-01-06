@@ -8,6 +8,7 @@ public class Muckraker extends Robot {
     }
 
     public void takeTurn() throws GameActionException{
+        super.takeTurn();
         Team enemy = rc.getTeam().opponent();
         int actionRadius = rc.getType().actionRadiusSquared;
         for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {

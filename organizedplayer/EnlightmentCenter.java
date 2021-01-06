@@ -8,6 +8,7 @@ public class EnlightmentCenter extends Robot {
     }
 
     public void takeTurn() throws GameActionException{
+        super.takeTurn();
         RobotType toBuild = randomSpawnableRobotType();
         int influence = 50;
         for (Direction dir : directions) {
