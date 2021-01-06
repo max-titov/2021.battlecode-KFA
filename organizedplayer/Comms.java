@@ -1,10 +1,11 @@
 package organizedplayer;
+
 import battlecode.common.*;
 
 public class Comms {
-    static RobotController rc;
+	static RobotController rc;
 
-    public Comms(RobotController r){
-        this.rc = r;
-    }
+	public Comms(RobotController r) {
+		this.rc = r;
+	}
 }
