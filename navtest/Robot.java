@@ -1,51 +1,42 @@
 package navtest;
 
+import java.util.Map;
+
 import battlecode.common.*;
 
 public class Robot {
-	static RobotController rc;
-	static Comms comms;
-	static Nav nav;
+	/**
+	 * Constants
+	 */
+	public static final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER,
+			RobotType.MUCKRAKER, };
+	public static final Direction[] directions = Direction.allDirections();
 
-	static final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
+	/**
+	 * 'Robot' Object Attributes
+	 */
+	private RobotController rc;
+	private Comms comms;
+	private int robotAge;
 
-	static final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
-			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
-
-	int robotAge;
-
-	public Robot(RobotController r) {
-		this.rc = r;
+	/**
+	 * Constructor
+	 * 
+	 * @param rc
+	 */
+	public Robot(RobotController rc) {
+		this.rc = rc;
 		this.comms = new Comms(rc);
-		this.nav = new Nav(rc);
 	}
 
+	/**
+	 * 'Robot' Object Methods
+	 */
 	public void takeTurn() throws GameActionException {
 		robotAge += 1;
 	}
 
-	Direction randomDirection() {
-		return directions[(int) (Math.random() * directions.length)];
-	}
-
-	RobotType randomSpawnableRobotType() {
+	public RobotType randomSpawnableRobotType() {
 		return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
-	}
-
-	/**
-	 * Attempts to move in a given direction.
-	 *
-	 * @param dir The intended direction of movement
-	 * @return true if a move was performed
-	 * @throws GameActionException
-	 */
-	boolean tryMove(Direction dir) throws GameActionException {
-		System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " "
-				+ rc.canMove(dir));
-		if (rc.canMove(dir)) {
-			rc.move(dir);
-			return true;
-		} else
-			return false;
 	}
 }

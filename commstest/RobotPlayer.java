@@ -1,10 +1,10 @@
-package commstest;
+package navtest;
 
 import battlecode.common.*;
 
 public strictfp class RobotPlayer {
-	static RobotController rc;
 
+	static RobotController rc;
 	static final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
 
 	/**
@@ -14,11 +14,15 @@ public strictfp class RobotPlayer {
 	@SuppressWarnings("unused")
 	public static void run(RobotController rc) throws GameActionException {
 
-		// This is the RobotController object. You use it to perform actions from this
-		// robot,
-		// and to get information on its current status.
+		/**
+		 * We have declared an object of type 'Robot'
+		 */
 		Robot me = null;
 
+		/**
+		 * In this switch statement, we will initialize the 'Robot' object to its
+		 * respective type
+		 */
 		switch (rc.getType()) {
 			case ENLIGHTENMENT_CENTER:
 				me = new EnlightmentCenter(rc);
@@ -35,18 +39,26 @@ public strictfp class RobotPlayer {
 		}
 
 		while (true) {
-			// Try/catch blocks stop unhandled exceptions, which cause your robot to freeze
+			/**
+			 * Try/catch blocks stop unhandled exceptions, which cause your robot to freeze
+			 */
 			try {
-				// Here, we've separated the controls into a different method for each
-				// RobotType.
-				// You may rewrite this into your own control structure if you wish.
+				/**
+				 * Here, we perform the takeTurn method, which is a method of 'Robot' This
+				 * method is overridden in each subclass of Robot
+				 */
 				me.takeTurn();
 
-				// Clock.yield() makes the robot wait until the next turn, then it will perform
-				// this loop again
+				/**
+				 * Clock.yield() makes the robot wait until the next turn, then it will perform
+				 * this loop again
+				 */
 				Clock.yield();
 
 			} catch (Exception e) {
+				/**
+				 * Print any exceptions if needed
+				 */
 				System.out.println(rc.getType() + " Exception");
 				e.printStackTrace();
 			}
