@@ -1,4 +1,4 @@
-package navtest;
+package organizedplayer;
 
 import battlecode.common.*;
 

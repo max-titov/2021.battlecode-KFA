@@ -10,6 +10,14 @@ public class Muckraker extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
+		int navCircleLen = nav.navCircle.length;
+		MapLocation tempLoc = rc.getLocation();
+		for (int i = 0; i<navCircleLen;i++){
+			tempLoc.add(nav.navCircle[i]);
+			System.out.println(tempLoc);
+			rc.setIndicatorDot(tempLoc, 255, 255, 255);
+		}
+
 		Team enemy = rc.getTeam().opponent();
 		int actionRadius = rc.getType().actionRadiusSquared;
 		for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {

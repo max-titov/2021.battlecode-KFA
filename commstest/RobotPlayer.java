@@ -1,4 +1,4 @@
-package navtest;
+package commstest;
 
 import battlecode.common.*;
 
