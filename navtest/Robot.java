@@ -15,9 +15,10 @@ public class Robot {
 	/**
 	 * 'Robot' Object Attributes
 	 */
-	private RobotController rc;
-	private Comms comms;
-	private int robotAge;
+	public RobotController rc;
+	public Navigation nav;
+	public Comms comms;
+	public int robotAge;
 
 	/**
 	 * Constructor
@@ -26,6 +27,7 @@ public class Robot {
 	 */
 	public Robot(RobotController rc) {
 		this.rc = rc;
+		this.nav = new Navigation(rc);
 		this.comms = new Comms(rc);
 	}
 
@@ -34,6 +36,10 @@ public class Robot {
 	 */
 	public void takeTurn() throws GameActionException {
 		robotAge += 1;
+	}
+
+	public Direction randomDirection() {
+		return directions[(int) (Math.random() * directions.length)];
 	}
 
 	public RobotType randomSpawnableRobotType() {

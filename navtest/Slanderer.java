@@ -10,7 +10,7 @@ public class Slanderer extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		if (tryMove(randomDirection()))
+		if (nav.tryMove(randomDirection()))
 			System.out.println("I moved!");
 	}
 
