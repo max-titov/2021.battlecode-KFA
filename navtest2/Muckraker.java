@@ -17,20 +17,21 @@ public class Muckraker extends Robot {
 			if (robot.type.canBeExposed()) {
 				// It's a slanderer... go get them!
 				if (rc.canExpose(robot.location)) {
-					System.out.println("e x p o s e d");
 					rc.expose(robot.location);
 					return;
 				}
 			}
 		}
-		if (tryMove(randomDirection()))
-			System.out.println("I moved!");
+		tryMove(randomDirection());
 	}
 
 	public void testNavCircle() throws GameActionException {
 		int navCircleLen = nav.navCircle.length;
+		MapLocation tempLoc = rc.getLocation();
 		for (int i = 0; i < navCircleLen; i++){
-			System.out.println(nav.navCircle[i]);
+			tempLoc = tempLoc.add(nav.navCircle[i]);
+			int c = i*2;
+			rc.setIndicatorDot(tempLoc,c,c,c);
 		}
 	}
 
