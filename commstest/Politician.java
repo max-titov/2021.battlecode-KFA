@@ -1,4 +1,4 @@
-package organizedplayer;
+package commstest;
 
 import battlecode.common.*;
 

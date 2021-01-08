@@ -1,12 +1,12 @@
-package organizedplayer;
+package commstest;
 
 import battlecode.common.*;
 
-public class EnlightenmentCenter extends Robot {
+public class EnlightmentCenter extends Robot {
 
-    public EnlightenmentCenter(RobotController r){
-        super(r);
-    }
+	public EnlightmentCenter(RobotController r) {
+		super(r);
+	}
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
