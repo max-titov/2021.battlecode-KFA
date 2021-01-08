@@ -7,7 +7,8 @@ public class Robot {
 	 * Constants
 	 */
 	public final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
-	public final Direction[] directions = Direction.allDirections();
+	static final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
+			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
 
 	/**
 	 * 'Robot' Object Attributes
