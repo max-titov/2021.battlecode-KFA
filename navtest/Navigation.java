@@ -1,10 +1,13 @@
 package navtest;
 
+import java.util.Map;
+
 import battlecode.common.*;
 
 public class Navigation {
 
-	public final Direction[] directions = Direction.allDirections();
+	static final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
+			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
 	public final Direction N = Direction.NORTH;
 	public final Direction NW = Direction.NORTHWEST;
 	public final Direction W = Direction.WEST;
@@ -26,21 +29,68 @@ public class Navigation {
 		this.rc = rc;
 	}
 
-	public boolean tryMoveToTarget(MapLocation target) {
-		if (rc.canMove(randomDirection())) {
-			int targetX = target.x;
-			int targetY = target.y;
-			return true;
-		} else
-			return false;
+	public void tryMoveToTarget(MapLocation target) throws GameActionException {
+		MapLocation prevLoc = rc.getLocation();
+		MapLocation tempPrevLoc = rc.getLocation();
+		MapLocation currLoc = rc.getLocation();
+		while (!currLoc.equals(target)) {
+			double[] adjEfficiency = getAdjEfficiencyMap(target);
+			int maxIndex = 0;
+			int secondMaxIndex = 0;
+			for (int i = 0; i < 8; i++) {
+				if (adjEfficiency[i] > adjEfficiency[maxIndex]) {
+					maxIndex = i;
+				}
+			}
+			for (int i = 0; i < 8; i++) {
+				if (i != maxIndex && adjEfficiency[i] > adjEfficiency[secondMaxIndex]) {
+					secondMaxIndex = i;
+				}
+			}
+			Direction mostEfficientDirection = directions[maxIndex];
+			if (currLoc.add(mostEfficientDirection).equals(prevLoc)) {
+				mostEfficientDirection = directions[secondMaxIndex];
+			}
+			tempPrevLoc = currLoc;
+			if (tryMove(mostEfficientDirection)) {
+				prevLoc = tempPrevLoc;
+			}
+			currLoc = rc.getLocation();
+		}
+	}
+
+	public double[] getAdjEfficiencyMap(MapLocation target) throws GameActionException {
+		double[] efficiencies = new double[8];
+		MapLocation currLoc = rc.getLocation();
+		double passabilityWeight = 1;
+		double directionWeight = 0.65;
+		double directionalBias = 1.4;
+		for (int i = 0; i < 8; i++) {
+			MapLocation testLoc = currLoc.add(directions[i]);
+			double passability = rc.sensePassability(testLoc);
+			double directionalAccuracy = Math.sqrt(currLoc.distanceSquaredTo(target))
+					- Math.sqrt(testLoc.distanceSquaredTo(target));
+			efficiencies[i] = passabilityWeight * passability
+					+ directionWeight * (directionalAccuracy + directionalBias);
+		}
+		return efficiencies;
+	}
+
+	public double[] getAdjPassabilityMap() throws GameActionException {
+		double[] passabilities = new double[8];
+		MapLocation currLoc = rc.getLocation();
+		for (int i = 0; i < 8; i++) {
+			passabilities[i] = rc.sensePassability(currLoc.add(directions[i]));
+		}
+		return passabilities;
 	}
 
 	public double calcTurnsOfPath(double[] path) {
 		double cooldown = 5.3;
-		for (double passability : path) {
-			cooldown += getBaseCooldown() / passability;
+		for (int i = 0; i < path.length; i++) {
+			cooldown += getBaseCooldown() / path[i];
 		}
-		return (cooldown);
+		return cooldown;
 	}
 
 	public double getBaseCooldown() {
@@ -63,8 +113,6 @@ public class Navigation {
 	}
 
 	public boolean tryMove(Direction dir) throws GameActionException {
-		System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " "
-				+ rc.canMove(dir));
 		if (rc.canMove(dir)) {
 			rc.move(dir);
 			return true;

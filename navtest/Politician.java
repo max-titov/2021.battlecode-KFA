@@ -10,6 +10,7 @@ public class Politician extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
+		nav.tryMove(randomDirection());
 	}
 
 }
