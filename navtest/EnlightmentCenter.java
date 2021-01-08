@@ -4,8 +4,8 @@ import battlecode.common.*;
 
 public class EnlightmentCenter extends Robot {
 
-	public EnlightmentCenter(RobotController r) {
-		super(r);
+	public EnlightmentCenter(RobotController rc) {
+		super(rc);
 	}
 
 	public void takeTurn() throws GameActionException {

@@ -1,16 +1,13 @@
 package navtest;
 
-import java.util.Map;
-
 import battlecode.common.*;
 
 public class Robot {
 	/**
 	 * Constants
 	 */
-	public static final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER,
-			RobotType.MUCKRAKER, };
-	public static final Direction[] directions = Direction.allDirections();
+	public final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
+	public final Direction[] directions = Direction.allDirections();
 
 	/**
 	 * 'Robot' Object Attributes
