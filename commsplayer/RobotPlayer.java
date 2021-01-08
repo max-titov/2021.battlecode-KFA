@@ -1,4 +1,4 @@
-package organizedplayer;
+package commsplayer;
 import battlecode.common.*;
 
 public strictfp class RobotPlayer {

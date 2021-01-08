@@ -1,9 +1,9 @@
 package organizedplayer;
 import battlecode.common.*;
 
-public class EnlightmentCenter extends Robot {
+public class EnlightenmentCenter extends Robot {
 
-    public EnlightmentCenter(RobotController r){
+    public EnlightenmentCenter(RobotController r){
         super(r);
     }
 
