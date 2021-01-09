@@ -1,7 +1,5 @@
 package navtest;
 
-import java.util.Map;
-
 import battlecode.common.*;
 
 public class Navigation {
