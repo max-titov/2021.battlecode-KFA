@@ -1,4 +1,4 @@
-package commstest;
+package testerplayer;
 
 import battlecode.common.*;
 
