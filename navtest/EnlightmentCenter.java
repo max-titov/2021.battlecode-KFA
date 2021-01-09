@@ -14,7 +14,7 @@ public class EnlightmentCenter extends Robot {
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		RobotType toBuild = RobotType.MUCKRAKER;
-		Direction dir = randomDirection();
+		Direction dir = Direction.WEST;
 		if (rc.canBuildRobot(toBuild, dir, influence) && !created) {
 			rc.buildRobot(toBuild, dir, influence);
 			created = true;

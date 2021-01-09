@@ -7,7 +7,7 @@ public class Robot {
 	 * Constants
 	 */
 	public final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
-	static final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
+	public final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
 			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
 
 	/**
@@ -16,7 +16,17 @@ public class Robot {
 	public RobotController rc;
 	public Navigation nav;
 	public Comms comms;
+	public Team myTeam;
+	public Team opponentTeam;
+	public RobotType myType;
 	public int robotAge;
+	public int conviction;
+	public double cooldownTurns;
+	public int id;
+	public int influence;
+	public MapLocation currLoc;
+	public int roundNum;
+	public int message;
 
 	/**
 	 * Constructor
@@ -27,6 +37,16 @@ public class Robot {
 		this.rc = rc;
 		this.nav = new Navigation(rc);
 		this.comms = new Comms(rc);
+		myTeam = rc.getTeam();
+		opponentTeam = myTeam.opponent();
+		myType = rc.getType();
+		id = rc.getID();
+		robotAge = 0;
+		conviction = rc.getConviction();
+		cooldownTurns = rc.getCooldownTurns();
+		influence = rc.getInfluence();
+		currLoc = rc.getLocation();
+		roundNum = rc.getRoundNum();
 	}
 
 	/**
@@ -34,6 +54,12 @@ public class Robot {
 	 */
 	public void takeTurn() throws GameActionException {
 		robotAge += 1;
+		conviction = rc.getConviction();
+		cooldownTurns = rc.getCooldownTurns();
+		influence = rc.getInfluence();
+		currLoc = rc.getLocation();
+		roundNum = rc.getRoundNum();
+		// message = comms.checkmessage()
 	}
 
 	public Direction randomDirection() {
