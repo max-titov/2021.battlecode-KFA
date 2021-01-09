@@ -1,10 +1,10 @@
-package navtest;
+package muckrakertest;
 
 import battlecode.common.*;
 
-public class Muckraker extends Robot {
+public class Slanderer extends Robot {
 
-	public Muckraker(RobotController rc) {
+	public Slanderer(RobotController rc) {
 		super(rc);
 	}
 
@@ -12,4 +12,5 @@ public class Muckraker extends Robot {
 		super.takeTurn();
 		nav.tryMove(randomDirection());
 	}
+
 }
