@@ -1,7 +1,5 @@
 package navtest;
 
-import java.util.Map;
-
 import battlecode.common.*;
 
 public class Navigation {
@@ -17,12 +15,6 @@ public class Navigation {
 	public final Direction SE = Direction.SOUTHEAST;
 	public final Direction E = Direction.EAST;
 	public final Direction NE = Direction.NORTHEAST;
-
-	public final Direction[] navCircle = new Direction[] { N, W, S, S, E, E, N, N, N, E, E, SE, S, S, SW, W, W, NW, N,
-			N, N, NE, E, E, SE, SE, S, S, SW, SW, W, W, NW, NW, N, N, N, N, E, N, E, E, E, E, S, E, S, E, S, S, S, S, W,
-			S, W, S, W, W, W, W, N, W, N, W, N, N, N, N, N, NW, NW, W, W, W, W, SW, SW, SW, S, S, S, S, SE, SE, SE, E,
-			E, E, E, NE, NE, NE, N, N, N, N, N, NW, NW, NW, W, W, W, W, SW, SW, SW, SW, S, S, S, S, SE, SE, SE, SE, E,
-			E, E, E, NE, NE, NE, NE, N, N, N, N };
 
 	private RobotController rc;
 
@@ -141,14 +133,31 @@ public class Navigation {
 		return efficiencies;
 	}
 
-	//this method is unused rn
-	public double[] getAdjPassabilityMap() throws GameActionException {
+	public double[] getAdjPassabilityMap(MapLocation currLoc) throws GameActionException {
 		double[] passabilities = new double[8];
-		MapLocation currLoc = rc.getLocation();
 		for (int i = 0; i < 8; i++) {
 			passabilities[i] = rc.sensePassability(currLoc.add(directions[i]));
 		}
 		return passabilities;
+	}
+
+	public Direction relativeLocToEC(MapLocation currLoc) {
+		RobotInfo[] robots = rc.senseNearbyRobots(2, rc.getTeam());
+		for (int i = 0; i < robots.length; i++) {
+			RobotInfo ri = robots[i];
+			if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
+				return ri.getLocation().directionTo(currLoc);
+			}
+		}
+		return Direction.NORTH;
+	}
+
+	public double calcTurnsOfPath(double[] path) {
+		double cooldown = 5.3;
+		for (int i = 0; i < path.length; i++) {
+			cooldown += getBaseCooldown() / path[i];
+		}
+		return cooldown;
 	}
 
 	public double getBaseCooldown() {

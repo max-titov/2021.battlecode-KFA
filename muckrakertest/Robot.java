@@ -1,4 +1,4 @@
-package navtest;
+package muckrakertest;
 
 import battlecode.common.*;
 

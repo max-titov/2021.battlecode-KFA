@@ -1,4 +1,4 @@
-package organizedplayer;
+package muckrakertest;
 
 import battlecode.common.*;
 
@@ -25,7 +25,7 @@ public strictfp class RobotPlayer {
 		 */
 		switch (rc.getType()) {
 			case ENLIGHTENMENT_CENTER:
-				me = new EnlightenmentCenter(rc);
+				me = new EnlightmentCenter(rc);
 				break;
 			case POLITICIAN:
 				me = new Politician(rc);

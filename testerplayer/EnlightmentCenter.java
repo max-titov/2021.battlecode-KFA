@@ -1,4 +1,4 @@
-package navtest;
+package testerplayer;
 
 import battlecode.common.*;
 
@@ -13,11 +13,10 @@ public class EnlightmentCenter extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		RobotType toBuild = RobotType.MUCKRAKER;
-		Direction dir = Direction.WEST;
+		RobotType toBuild = RobotType.SLANDERER;
+		Direction dir = randomDirection();
 		if (rc.canBuildRobot(toBuild, dir, influence) && !created) {
 			rc.buildRobot(toBuild, dir, influence);
-			created = true;
 		}
 	}
 
