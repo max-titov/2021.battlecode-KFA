@@ -1,5 +1,9 @@
 package muckrakertest;
 
+import java.util.Map;
+
+import javax.swing.plaf.synth.SynthScrollBarUI;
+
 import battlecode.common.*;
 
 public class Muckraker extends Robot {
@@ -66,6 +70,11 @@ public class Muckraker extends Robot {
 	public void explorerMuckraker(RobotInfo[] robotsInSight) throws GameActionException {
 		// if edge is detected report location to EC if EC does not know map corners
 		// yet, and change target
+		int[] edges = nav.lookForEdges();
+		if (edges != null) {
+			target = new MapLocation(10015, 23937);
+			System.out.println("edge detected");
+		}
 		nav.tryMoveToTarget(target);
 	}
 
