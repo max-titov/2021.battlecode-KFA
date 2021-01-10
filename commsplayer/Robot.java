@@ -43,6 +43,7 @@ public class Robot {
                 this.creatorLoc = nearbyRobots[i].location; 
             }
         }
+        return 0; //TEMPORARY FIX BY MAX SO CODE COULD BE COMPILED
     }
 
     //This method is also meant for the first turn

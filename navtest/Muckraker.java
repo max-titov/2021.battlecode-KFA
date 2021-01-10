@@ -10,7 +10,6 @@ public class Muckraker extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		nav.tryMoveToTarget(new MapLocation(10026, 23940));
+		nav.tryMoveToTarget(new MapLocation(10018, 23950));
 	}
-
 }

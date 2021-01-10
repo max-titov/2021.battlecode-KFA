@@ -1,4 +1,4 @@
-package commstest;
+package sprintplayer;
 
 import battlecode.common.*;
 

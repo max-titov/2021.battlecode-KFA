@@ -1,4 +1,4 @@
-package organizedplayer;
+package sprintplayer;
 
 import battlecode.common.*;
 
