@@ -10,6 +10,12 @@ public class Muckraker extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		nav.tryMoveToTarget(new MapLocation(10018, 23950));
+		int[] edges = nav.lookForEdges();
+		String print = "no edges found";
+		if (edges!= null){
+			print = "Type: " + edges[0]+" ("+edges[1]+","+edges[2]+")";
+		}
+		System.out.println(print);
+		nav.tryMoveToTarget(new MapLocation(10027, 23949));
 	}
 }

@@ -16,6 +16,15 @@ public class Navigation {
 	public final Direction E = Direction.EAST;
 	public final Direction NE = Direction.NORTHEAST;
 
+	public static final int NORTH_INT = 0;
+	public static final int NORTHEAST_INT = 1;
+	public static final int EAST_INT = 2;
+	public static final int SOUTHEAST_INT = 3;
+	public static final int SOUTH_INT = 4;
+	public static final int SOUTHWEST_INT = 5;
+	public static final int WEST_INT = 6;
+	public static final int NORTHWEST_INT = 7;
+
 	private RobotController rc;
 
 	public int noReturnLocLen = 13;
@@ -122,6 +131,10 @@ public class Navigation {
 		double directionalBias = 1.4;
 		for (int i = 0; i < 8; i++) {
 			MapLocation testLoc = currLoc.add(directions[i]);
+			if (!rc.onTheMap(testLoc)) {
+				efficiencies[i] = -99999;
+				continue;
+			}
 			double passability = rc.sensePassability(testLoc);
 			double directionalAccuracy = Math.sqrt(currLoc.distanceSquaredTo(target))
 					- Math.sqrt(testLoc.distanceSquaredTo(target));
@@ -151,11 +164,106 @@ public class Navigation {
 	}
 
 	public double calcTurnsOfPath(double[] path) {
-		double cooldown = 5.3;
+		double cooldown = rc.getCooldownTurns();
 		for (int i = 0; i < path.length; i++) {
 			cooldown += getBaseCooldown() / path[i];
 		}
 		return cooldown;
+	}
+
+	public int[] lookForEdges() throws GameActionException {
+		MapLocation currLoc = rc.getLocation();
+		int currX = currLoc.x;
+		int currY = currLoc.y;
+		int cardinalSensorRadius = getCardinalSensorRadius();
+
+		MapLocation checkNorth = new MapLocation(currX, currY + cardinalSensorRadius);
+		MapLocation checkEast = new MapLocation(currX + cardinalSensorRadius, currY);
+		MapLocation checkSouth = new MapLocation(currX, currY - cardinalSensorRadius);
+		MapLocation checkWest = new MapLocation(currX - cardinalSensorRadius, currY);
+
+		boolean northNotOnMap = !rc.onTheMap(checkNorth);
+		boolean eastNotOnMap = !rc.onTheMap(checkEast);
+		boolean southNotOnMap = !rc.onTheMap(checkSouth);
+		boolean westNotOnMap = !rc.onTheMap(checkWest);
+
+		if (northNotOnMap){
+			MapLocation testLoc = new MapLocation(checkNorth.x,checkNorth.y-1);
+			while (!rc.onTheMap(testLoc)){
+				testLoc = new MapLocation(testLoc.x,testLoc.y-1);
+			}
+			checkNorth = new MapLocation(testLoc.x,testLoc.y);
+		}
+		if (eastNotOnMap){
+			MapLocation testLoc = new MapLocation(checkEast.x-1,checkEast.y);
+			while (!rc.onTheMap(testLoc)){
+				testLoc = new MapLocation(testLoc.x-1,testLoc.y);
+			}
+			checkEast = new MapLocation(testLoc.x,testLoc.y);
+		}
+		if (southNotOnMap){
+			MapLocation testLoc = new MapLocation(checkSouth.x,checkSouth.y+1);
+			while (!rc.onTheMap(testLoc)){
+				testLoc = new MapLocation(testLoc.x,testLoc.y+1);
+			}
+			checkSouth = new MapLocation(testLoc.x,testLoc.y);
+		}
+		if (westNotOnMap){
+			MapLocation testLoc = new MapLocation(checkNorth.x+1,checkNorth.y);
+			while (!rc.onTheMap(testLoc)){
+				testLoc = new MapLocation(testLoc.x+1,testLoc.y);
+			}
+			checkWest = new MapLocation(testLoc.x,testLoc.y);
+		}
+
+		MapLocation locationToSend = null;
+		int typeOfEdge = -1;
+		if (northNotOnMap) {
+			if (eastNotOnMap) {
+				// northeast corner
+				locationToSend = new MapLocation(checkEast.x,checkNorth.y);
+				typeOfEdge = NORTHEAST_INT;
+			} else if (westNotOnMap) {
+				// northwest corner
+				locationToSend = new MapLocation(checkWest.x,checkNorth.y);
+				typeOfEdge = NORTHWEST_INT;
+			} else {
+				// north side
+				locationToSend = new MapLocation(checkNorth.x,checkNorth.y);
+				typeOfEdge = NORTH_INT;
+			}
+		} else if (southNotOnMap) {
+			if (eastNotOnMap) {
+				// southeast corner
+				locationToSend = new MapLocation(checkEast.x,checkSouth.y);
+				typeOfEdge = SOUTHEAST_INT;
+			} else if (westNotOnMap) {
+				// southwest corner
+				locationToSend = new MapLocation(checkWest.x,checkSouth.y);
+				typeOfEdge = SOUTHWEST_INT;
+			} else {
+				//south side
+				locationToSend = new MapLocation(checkSouth.x,checkSouth.y);
+				typeOfEdge = SOUTH_INT;
+			}
+		} else if (eastNotOnMap) {
+			// east side
+			locationToSend = new MapLocation(checkEast.x,checkEast.y);
+			typeOfEdge = EAST_INT;
+		} else if (westNotOnMap) {
+			// west side
+			locationToSend = new MapLocation(checkWest.x,checkWest.y);
+			typeOfEdge = WEST_INT;
+		}
+		if (typeOfEdge==-1){
+			return null;
+		}
+		int[] returnArr = new int[3];
+		returnArr[0] = typeOfEdge;
+		returnArr[1] = locationToSend.x;
+		returnArr[2] = locationToSend.y;
+
+		return returnArr;
 	}
 
 	public double getBaseCooldown() {
@@ -168,6 +276,21 @@ public class Navigation {
 				return 2.0;
 			case MUCKRAKER:
 				return 1.5;
+			default:
+				return -1;
+		}
+	}
+
+	public int getCardinalSensorRadius() {
+		switch (rc.getType()) {
+			case ENLIGHTENMENT_CENTER:
+				return 6;
+			case POLITICIAN:
+				return 5;
+			case SLANDERER:
+				return 4;
+			case MUCKRAKER:
+				return 5;
 			default:
 				return -1;
 		}
