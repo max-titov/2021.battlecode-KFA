@@ -16,6 +16,15 @@ public class Navigation {
 	public final Direction E = Direction.EAST;
 	public final Direction NE = Direction.NORTHEAST;
 
+	public static final int NORTH_INT = 0;
+	public static final int NORTHEAST_INT = 1;
+	public static final int EAST_INT = 2;
+	public static final int SOUTHEAST_INT = 3;
+	public static final int SOUTH_INT = 4;
+	public static final int SOUTHWEST_INT = 5;
+	public static final int WEST_INT = 6;
+	public static final int NORTHWEST_INT = 7;
+
 	private RobotController rc;
 
 	public int noReturnLocLen = 13;
@@ -29,19 +38,19 @@ public class Navigation {
 
 	public void tryMoveToTarget(MapLocation target) throws GameActionException {
 		MapLocation currLoc = rc.getLocation();
-		shiftPrevLocArray(); //shifts list of previously visited locations
+		shiftPrevLocArray(); // shifts list of previously visited locations
 		if (currLoc.equals(target)) {
-			//if at target, reset previous locations array
+			// if at target, reset previous locations array
 			previousLocs = new MapLocation[noReturnLocLen];
 			return;
 		}
-		//look at adj 8 locations and calc best squares
+		// look at adj 8 locations and calc best squares
 		double[] adjEfficiency = getAdjEfficiencyMap(target);
 		Direction[] bestDirsToMove = new Direction[directionsLen];
-		//sort the adj locations to move best to worst
+		// sort the adj locations to move best to worst
 		for (int i = 0; i < directionsLen; i++) {
 			int maxIndex = 0;
-			for (int j = 0; j < directionsLen; j++){
+			for (int j = 0; j < directionsLen; j++) {
 				if (adjEfficiency[j] > adjEfficiency[maxIndex]) {
 					maxIndex = j;
 				}
@@ -49,24 +58,24 @@ public class Navigation {
 			bestDirsToMove[i] = directions[maxIndex];
 			adjEfficiency[maxIndex] = -999999;
 		}
-		if(DEBUG){
-			//show the previous locations
-			for (int i = 0; i < noReturnLocLen; i++){
-				if (previousLocs[i]!=null){
-					rc.setIndicatorDot(previousLocs[i], i*20, 255-i*20, 255-i*20);
+		if (DEBUG) {
+			// show the previous locations
+			for (int i = 0; i < noReturnLocLen; i++) {
+				if (previousLocs[i] != null) {
+					rc.setIndicatorDot(previousLocs[i], i * 20, 255 - i * 20, 255 - i * 20);
 				}
 			}
 		}
-		//try to move to an adj location, from best to worst
-		for (int i = 0; i < directionsLen; i++){
+		// try to move to an adj location, from best to worst
+		for (int i = 0; i < directionsLen; i++) {
 			Direction tryMoveDirection = bestDirsToMove[i];
-			if(tryMoveAvoidPrevLocs(tryMoveDirection)){
+			if (tryMoveAvoidPrevLocs(tryMoveDirection)) {
 				break;
 			}
 		}
 	}
 
-	//this method is useless right now
+	// this method is useless right now
 	public void tryMoveToTargetSelectionSort(MapLocation target) throws GameActionException {
 		MapLocation prevLoc = rc.getLocation();
 		MapLocation tempPrevLoc = rc.getLocation();
@@ -74,12 +83,12 @@ public class Navigation {
 		if (!currLoc.equals(target)) {
 			double[] adjEfficiency = getAdjEfficiencyMap(target);
 			Direction[] bestDirsToMove = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
-				Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
-			int directionsLenMinusOne = directionsLen-1;
+					Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
+			int directionsLenMinusOne = directionsLen - 1;
 			printList(adjEfficiency);
 			for (int i = 0; i < directionsLenMinusOne; i++) {
-				int maxIndex = i+1;
-				for (int j = i+1; j < directionsLen; j++){
+				int maxIndex = i + 1;
+				for (int j = i + 1; j < directionsLen; j++) {
 					if (adjEfficiency[j] >= adjEfficiency[maxIndex]) {
 						maxIndex = j;
 					}
@@ -92,26 +101,26 @@ public class Navigation {
 				bestDirsToMove[i] = swapDir;
 			}
 			printList(bestDirsToMove);
-			for (int i = 0; i < directionsLen; i++){
+			for (int i = 0; i < directionsLen; i++) {
 				Direction tryMoveDirection = bestDirsToMove[i];
-				if(tryMove(tryMoveDirection)){
+				if (tryMove(tryMoveDirection)) {
 					break;
 				}
 			}
-			//currLoc = rc.getLocation();
+			// currLoc = rc.getLocation();
 		}
 	}
 
-	public void printList(Object[] list){
-		for (int i = 0; i < list.length; i++){
-			System.out.print(list[i].toString()+" ");
+	public void printList(Object[] list) {
+		for (int i = 0; i < list.length; i++) {
+			System.out.print(list[i].toString() + " ");
 		}
 		System.out.println();
 	}
 
-	public void printList(double[] list){
-		for (int i = 0; i < list.length; i++){
-			System.out.print(String.format("%.2g%n", list[i])+" ");
+	public void printList(double[] list) {
+		for (int i = 0; i < list.length; i++) {
+			System.out.print(String.format("%.2g%n", list[i]) + " ");
 		}
 		System.out.println();
 	}
@@ -124,6 +133,10 @@ public class Navigation {
 		double directionalBias = 1.4;
 		for (int i = 0; i < 8; i++) {
 			MapLocation testLoc = currLoc.add(directions[i]);
+			if (!rc.onTheMap(testLoc)) {
+				efficiencies[i] = -99999;
+				continue;
+			}
 			double passability = rc.sensePassability(testLoc);
 			double directionalAccuracy = Math.sqrt(currLoc.distanceSquaredTo(target))
 					- Math.sqrt(testLoc.distanceSquaredTo(target));
@@ -153,11 +166,106 @@ public class Navigation {
 	}
 
 	public double calcTurnsOfPath(double[] path) {
-		double cooldown = 5.3;
+		double cooldown = rc.getCooldownTurns();
 		for (int i = 0; i < path.length; i++) {
 			cooldown += getBaseCooldown() / path[i];
 		}
 		return cooldown;
+	}
+
+	public int[] lookForEdges() throws GameActionException {
+		MapLocation currLoc = rc.getLocation();
+		int currX = currLoc.x;
+		int currY = currLoc.y;
+		int cardinalSensorRadius = getCardinalSensorRadius();
+
+		MapLocation checkNorth = new MapLocation(currX, currY + cardinalSensorRadius);
+		MapLocation checkEast = new MapLocation(currX + cardinalSensorRadius, currY);
+		MapLocation checkSouth = new MapLocation(currX, currY - cardinalSensorRadius);
+		MapLocation checkWest = new MapLocation(currX - cardinalSensorRadius, currY);
+
+		boolean northNotOnMap = !rc.onTheMap(checkNorth);
+		boolean eastNotOnMap = !rc.onTheMap(checkEast);
+		boolean southNotOnMap = !rc.onTheMap(checkSouth);
+		boolean westNotOnMap = !rc.onTheMap(checkWest);
+
+		if (northNotOnMap){
+			MapLocation testLoc = new MapLocation(checkNorth.x,checkNorth.y-1);
+			while (!rc.onTheMap(testLoc)){
+				testLoc = new MapLocation(testLoc.x,testLoc.y-1);
+			}
+			checkNorth = new MapLocation(testLoc.x,testLoc.y);
+		}
+		if (eastNotOnMap){
+			MapLocation testLoc = new MapLocation(checkEast.x-1,checkEast.y);
+			while (!rc.onTheMap(testLoc)){
+				testLoc = new MapLocation(testLoc.x-1,testLoc.y);
+			}
+			checkEast = new MapLocation(testLoc.x,testLoc.y);
+		}
+		if (southNotOnMap){
+			MapLocation testLoc = new MapLocation(checkSouth.x,checkSouth.y+1);
+			while (!rc.onTheMap(testLoc)){
+				testLoc = new MapLocation(testLoc.x,testLoc.y+1);
+			}
+			checkSouth = new MapLocation(testLoc.x,testLoc.y);
+		}
+		if (westNotOnMap){
+			MapLocation testLoc = new MapLocation(checkNorth.x+1,checkNorth.y);
+			while (!rc.onTheMap(testLoc)){
+				testLoc = new MapLocation(testLoc.x+1,testLoc.y);
+			}
+			checkWest = new MapLocation(testLoc.x,testLoc.y);
+		}
+
+		MapLocation locationToSend = null;
+		int typeOfEdge = -1;
+		if (northNotOnMap) {
+			if (eastNotOnMap) {
+				// northeast corner
+				locationToSend = new MapLocation(checkEast.x,checkNorth.y);
+				typeOfEdge = NORTHEAST_INT;
+			} else if (westNotOnMap) {
+				// northwest corner
+				locationToSend = new MapLocation(checkWest.x,checkNorth.y);
+				typeOfEdge = NORTHWEST_INT;
+			} else {
+				// north side
+				locationToSend = new MapLocation(checkNorth.x,checkNorth.y);
+				typeOfEdge = NORTH_INT;
+			}
+		} else if (southNotOnMap) {
+			if (eastNotOnMap) {
+				// southeast corner
+				locationToSend = new MapLocation(checkEast.x,checkSouth.y);
+				typeOfEdge = SOUTHEAST_INT;
+			} else if (westNotOnMap) {
+				// southwest corner
+				locationToSend = new MapLocation(checkWest.x,checkSouth.y);
+				typeOfEdge = SOUTHWEST_INT;
+			} else {
+				//south side
+				locationToSend = new MapLocation(checkSouth.x,checkSouth.y);
+				typeOfEdge = SOUTH_INT;
+			}
+		} else if (eastNotOnMap) {
+			// east side
+			locationToSend = new MapLocation(checkEast.x,checkEast.y);
+			typeOfEdge = EAST_INT;
+		} else if (westNotOnMap) {
+			// west side
+			locationToSend = new MapLocation(checkWest.x,checkWest.y);
+			typeOfEdge = WEST_INT;
+		}
+		if (typeOfEdge==-1){
+			return null;
+		}
+		int[] returnArr = new int[3];
+		returnArr[0] = typeOfEdge;
+		returnArr[1] = locationToSend.x;
+		returnArr[2] = locationToSend.y;
+
+		return returnArr;
 	}
 
 	public double getBaseCooldown() {
@@ -175,12 +283,29 @@ public class Navigation {
 		}
 	}
 
+	public int getCardinalSensorRadius() {
+		switch (rc.getType()) {
+			case ENLIGHTENMENT_CENTER:
+				return 6;
+			case POLITICIAN:
+				return 5;
+			case SLANDERER:
+				return 4;
+			case MUCKRAKER:
+				return 5;
+			default:
+				return -1;
+		}
+	}
+
 	public Direction randomDirection() {
 		return directions[(int) (Math.random() * directions.length)];
 	}
+
 	/**
-	 * checks if robot can move in dir and whether the location is not in the previousLoc array
-	 * if so, move there and update the previousLoc array
+	 * checks if robot can move in dir and whether the location is not in the
+	 * previousLoc array if so, move there and update the previousLoc array
+	 * 
 	 * @param dir direction to attempt to move in
 	 * @return whether the robot moved in dir
 	 * @throws GameActionException
@@ -191,31 +316,33 @@ public class Navigation {
 		}
 		MapLocation attemptMoveLoc = rc.getLocation().add(dir);
 		boolean shouldMove = true;
-		for (int i = 0; i < noReturnLocLen; i++){
+		for (int i = 0; i < noReturnLocLen; i++) {
 			MapLocation previousLoc = previousLocs[i];
-			if (previousLoc != null && previousLoc.equals(attemptMoveLoc)){
+			if (previousLoc != null && previousLoc.equals(attemptMoveLoc)) {
 				shouldMove = false;
 				break;
 			}
 		}
-		if (shouldMove){
-			//update array with new location
-			previousLocs[noReturnLocLen-1] = attemptMoveLoc;
+		if (shouldMove) {
+			// update array with new location
+			previousLocs[noReturnLocLen - 1] = attemptMoveLoc;
 			rc.move(dir);
 			return true;
 		}
 		return false;
 	}
+
 	/**
 	 * shifts elements of previous location array by one and makes the last one null
 	 * used to prevent robot from returning to past # of locations when pathfinding
+	 * 
 	 * @throws GameActionException
 	 */
 	public void shiftPrevLocArray() throws GameActionException {
-		for (int i = 0; i < noReturnLocLen-1; i++){
-			previousLocs[i]=previousLocs[i+1];
+		for (int i = 0; i < noReturnLocLen - 1; i++) {
+			previousLocs[i] = previousLocs[i + 1];
 		}
-		previousLocs[noReturnLocLen-1]=null;
+		previousLocs[noReturnLocLen - 1] = null;
 	}
 
 	public boolean tryMove(Direction dir) throws GameActionException {
