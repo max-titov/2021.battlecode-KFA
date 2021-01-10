@@ -1,11 +1,11 @@
-package organizedplayer;
+package playertemplate;
 
 import battlecode.common.*;
 
 public class Muckraker extends Robot {
 
-	public Muckraker(RobotController r) {
-		super(r);
+	public Muckraker(RobotController rc) {
+		super(rc);
 	}
 
 	public void takeTurn() throws GameActionException {
@@ -22,7 +22,7 @@ public class Muckraker extends Robot {
 				}
 			}
 		}
-		if (tryMove(randomDirection()))
+		if (nav.tryMove(randomDirection()))
 			System.out.println("I moved!");
 	}
 

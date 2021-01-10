@@ -1,4 +1,4 @@
-package sprintplayer;
+package playertemplate;
 
 import battlecode.common.*;
 

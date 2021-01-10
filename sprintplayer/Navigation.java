@@ -1,4 +1,4 @@
-package navtest;
+package sprintplayer;
 
 import battlecode.common.*;
 
@@ -151,7 +151,7 @@ public class Navigation {
 	}
 
 	public double calcTurnsOfPath(double[] path) {
-		double cooldown = 5.3;
+		double cooldown = rc.getCooldownTurns();
 		for (int i = 0; i < path.length; i++) {
 			cooldown += getBaseCooldown() / path[i];
 		}

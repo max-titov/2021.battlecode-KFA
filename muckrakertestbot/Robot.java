@@ -1,4 +1,4 @@
-package muckrakertest;
+package muckrakertestbot;
 
 import battlecode.common.*;
 

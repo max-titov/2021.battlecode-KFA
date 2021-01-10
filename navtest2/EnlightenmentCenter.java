@@ -2,10 +2,10 @@ package navtest2;
 
 import battlecode.common.*;
 
-public class EnlightmentCenter extends Robot {
+public class EnlightenmentCenter extends Robot {
 
-	public EnlightmentCenter(RobotController r) {
-		super(r);
+	public EnlightenmentCenter(RobotController rc) {
+		super(rc);
 	}
 
 	public void takeTurn() throws GameActionException {
@@ -13,7 +13,7 @@ public class EnlightmentCenter extends Robot {
 
 		if (rc.canBuildRobot(RobotType.MUCKRAKER, nav.E, 50)) {
 			rc.buildRobot(RobotType.MUCKRAKER, nav.E, 50);
-		} 
+		}
 	}
 
 }

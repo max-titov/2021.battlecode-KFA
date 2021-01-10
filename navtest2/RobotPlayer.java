@@ -25,7 +25,7 @@ public strictfp class RobotPlayer {
 		 */
 		switch (rc.getType()) {
 			case ENLIGHTENMENT_CENTER:
-				me = new EnlightmentCenter(rc);
+				me = new EnlightenmentCenter(rc);
 				break;
 			case POLITICIAN:
 				me = new Politician(rc);

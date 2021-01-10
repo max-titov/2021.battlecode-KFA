@@ -1,4 +1,4 @@
-package organizedplayer;
+package playertemplate;
 
 import battlecode.common.*;
 

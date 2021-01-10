@@ -1,4 +1,4 @@
-package sprintplayer;
+package muckrakertestbot;
 
 import battlecode.common.*;
 

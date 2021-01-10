@@ -1,11 +1,11 @@
-package organizedplayer;
+package playertemplate;
 
 import battlecode.common.*;
 
 public class Politician extends Robot {
 
-	public Politician(RobotController r) {
-		super(r);
+	public Politician(RobotController rc) {
+		super(rc);
 	}
 
 	public void takeTurn() throws GameActionException {
@@ -19,7 +19,7 @@ public class Politician extends Robot {
 			System.out.println("empowered");
 			return;
 		}
-		if (tryMove(randomDirection()))
+		if (nav.tryMove(randomDirection()))
 			System.out.println("I moved!");
 	}
 
