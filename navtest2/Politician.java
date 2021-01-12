@@ -17,7 +17,7 @@ public class Politician extends Robot {
 			rc.empower(actionRadius);
 			return;
 		}
-		tryMove(randomDirection());
+		nav.tryMove(nav.randomDirection());
 	}
 
 }

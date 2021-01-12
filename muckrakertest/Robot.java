@@ -12,7 +12,7 @@ public class Robot {
 			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
 
 	/**
-	 * 'Robot' Object Attributes
+	 * Robot's Attributes
 	 */
 	public RobotController rc;
 	public Navigation nav;
@@ -51,7 +51,7 @@ public class Robot {
 	}
 
 	/**
-	 * 'Robot' Object Methods
+	 * Robot's Methods
 	 */
 	public void takeTurn() throws GameActionException {
 		robotAge += 1;
@@ -61,13 +61,5 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		// message = comms.checkmessage()
-	}
-
-	public Direction randomDirection() {
-		return directions[(int) (Math.random() * directions.length)];
-	}
-
-	public RobotType randomSpawnableRobotType() {
-		return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
 	}
 }

@@ -3,47 +3,63 @@ package navtest2;
 import battlecode.common.*;
 
 public class Robot {
-	static RobotController rc;
-	static Comms comms;
-	static Nav nav;
-
-	static final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
-
-	static final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
+	/**
+	 * Constants
+	 */
+	public final int ROUND_TO_START_DEFENSE = 500;
+	public final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
+	public final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
 			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
 
-	int robotAge;
+	/**
+	 * Robot's Attributes
+	 */
+	public RobotController rc;
+	public Navigation nav;
+	public Comms comms;
+	public Team myTeam;
+	public Team opponentTeam;
+	public RobotType myType;
+	public int robotAge;
+	public int conviction;
+	public double cooldownTurns;
+	public int id;
+	public int influence;
+	public MapLocation currLoc;
+	public int roundNum;
+	public int message;
 
-	public Robot(RobotController r) {
-		this.rc = r;
+	/**
+	 * Constructor
+	 * 
+	 * @param rc
+	 */
+	public Robot(RobotController rc) {
+		this.rc = rc;
+		this.nav = new Navigation(rc);
 		this.comms = new Comms(rc);
-		this.nav = new Nav(rc);
-	}
-
-	public void takeTurn() throws GameActionException {
-		robotAge += 1;
-	}
-
-	Direction randomDirection() {
-		return directions[(int) (Math.random() * directions.length)];
-	}
-
-	RobotType randomSpawnableRobotType() {
-		return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
+		myTeam = rc.getTeam();
+		opponentTeam = myTeam.opponent();
+		myType = rc.getType();
+		id = rc.getID();
+		robotAge = 0;
+		conviction = rc.getConviction();
+		cooldownTurns = rc.getCooldownTurns();
+		influence = rc.getInfluence();
+		currLoc = rc.getLocation();
+		roundNum = rc.getRoundNum();
 	}
 
 	/**
-	 * Attempts to move in a given direction.
-	 *
-	 * @param dir The intended direction of movement
-	 * @return true if a move was performed
-	 * @throws GameActionException
+	 * Robot's Methods
 	 */
-	boolean tryMove(Direction dir) throws GameActionException {
-		if (rc.canMove(dir)) {
-			rc.move(dir);
-			return true;
-		} else
-			return false;
+	public void takeTurn() throws GameActionException {
+		robotAge += 1;
+		conviction = rc.getConviction();
+		cooldownTurns = rc.getCooldownTurns();
+		influence = rc.getInfluence();
+		currLoc = rc.getLocation();
+		roundNum = rc.getRoundNum();
+		// message = comms.checkmessage()
 	}
 }
