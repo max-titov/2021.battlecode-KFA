@@ -22,16 +22,16 @@ public class Muckraker extends Robot {
 				}
 			}
 		}
-		tryMove(randomDirection());
+		nav.tryMove(nav.randomDirection());
 	}
 
 	public void testNavCircle() throws GameActionException {
 		int navCircleLen = nav.navCircle.length;
 		MapLocation tempLoc = rc.getLocation();
-		for (int i = 0; i < navCircleLen; i++){
+		for (int i = 0; i < navCircleLen; i++) {
 			tempLoc = tempLoc.add(nav.navCircle[i]);
-			int c = i*2;
-			rc.setIndicatorDot(tempLoc,c,c,c);
+			int c = i * 2;
+			rc.setIndicatorDot(tempLoc, c, c, c);
 		}
 	}
 

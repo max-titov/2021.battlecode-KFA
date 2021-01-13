@@ -19,7 +19,7 @@ public class Politician extends Robot {
 			System.out.println("empowered");
 			return;
 		}
-		if (nav.tryMove(randomDirection()))
+		if (nav.tryMove(nav.randomDirection()))
 			System.out.println("I moved!");
 	}
 

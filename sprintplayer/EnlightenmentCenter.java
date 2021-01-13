@@ -10,7 +10,7 @@ public class EnlightenmentCenter extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		RobotType toBuild = randomSpawnableRobotType();
+		RobotType toBuild = RobotType.MUCKRAKER;
 		int influence = 50;
 		for (Direction dir : directions) {
 			if (rc.canBuildRobot(toBuild, dir, influence)) {
