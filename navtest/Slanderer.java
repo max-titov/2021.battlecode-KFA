@@ -36,35 +36,35 @@ public class Slanderer extends Robot {
 		int totalY = 0;
 		int slandererCount = 0;
 
-		for (int i = 0; i < alliedBotsLen; i++){
+		for (int i = 0; i < alliedBotsLen; i++) {
 			RobotInfo ri = alliedBots[i];
-			if(ri.getType().equals(RobotType.SLANDERER)){
+			if (ri.getType().equals(RobotType.SLANDERER)) {
 				MapLocation tempLoc = ri.getLocation();
 				totalX += tempLoc.x;
 				totalY += tempLoc.y;
 				slandererCount++;
-				
+
 			}
 		}
-		if(slandererCount==0){
+		if (slandererCount == 0) {
 			return null;
 		}
-		int avgX = totalX/slandererCount;
-		int avgY = totalY/slandererCount;
-		MapLocation avgLoc = new MapLocation(avgX,avgY);
+		int avgX = totalX / slandererCount;
+		int avgY = totalY / slandererCount;
+		MapLocation avgLoc = new MapLocation(avgX, avgY);
 		return avgLoc;
 	}
 
-	public MapLocation newBunchAwayFromEC(){
+	public MapLocation newBunchAwayFromEC() {
 		Direction dir = nav.relativeLocToEC(currLoc);
-		for(int i = 0; i<8;i++){
+		for (int i = 0; i < 8; i++) {
 			boolean foundSpot = false;
-			MapLocation testLoc = currLoc.add(Direction.CENTER);//copies currLoc idk if there is a better way to do it
-			while(myECLoc.isWithinDistanceSquared(testLoc, distanceSquared))
+			MapLocation testLoc = currLoc.add(Direction.CENTER);// copies currLoc idk if there is a better way to do it
+			while (myECLoc.isWithinDistanceSquared(testLoc, 20)) {
+
+			}
 		}
+		return currLoc;
 	}
-
-
-
 
 }
