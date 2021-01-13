@@ -27,6 +27,9 @@ public class Robot {
 	public MapLocation currLoc;
 	public int roundNum;
 	public int message;
+	public int sensorRadSq;
+	public MapLocation myECLoc;
+	public int myECid;
 
 	/**
 	 * Constructor
@@ -47,6 +50,7 @@ public class Robot {
 		influence = rc.getInfluence();
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
+		sensorRadSq = getSensorRadiusSq();
 	}
 
 	/**
@@ -60,6 +64,32 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		// message = comms.checkmessage()
+	}
+
+	public void getECDetails() throws GameActionException {
+		RobotInfo[] robots = rc.senseNearbyRobots(2, myTeam);
+		for (int i = 0; i < robots.length; i++) {
+			RobotInfo ri = robots[i];
+			if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
+				myECLoc = ri.getLocation();
+				myECid = ri.getID();
+			}
+		}
+	}
+
+	public int getSensorRadiusSq() {
+		switch (rc.getType()) {
+			case ENLIGHTENMENT_CENTER:
+				return 40;
+			case POLITICIAN:
+				return 25;
+			case SLANDERER:
+				return 20;
+			case MUCKRAKER:
+				return 30;
+			default:
+				return -1;
+		}
 	}
 
 	public Direction randomDirection() {
