@@ -6,7 +6,6 @@ public class Robot {
 	/**
 	 * Constants
 	 */
-	public final int ROUND_TO_START_DEFENSE = 500;
 	public final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
 	public final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
 			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
@@ -61,5 +60,9 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		// message = comms.checkmessage()
+	}
+
+	public boolean coinFlip() {
+		return Math.random() > 0.5;
 	}
 }

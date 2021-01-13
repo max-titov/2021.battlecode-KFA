@@ -6,9 +6,11 @@ public class Muckraker extends Robot {
 	/**
 	 * Constants
 	 */
+	public final int ROUND_TO_START_HARASS = 500;
 	public final int EXPLORER_MUCKRAKER = 1;
 	public final int HARASS_MUCKRAKER = 2;
-	public final int DEFENSE_MUCKRAKER = 3;
+	public final int BOUNCE_EXPLORER = 1;
+	public final int EDGE_EXPLORER = 2;
 
 	/**
 	 * Muckraker's attributes
@@ -18,6 +20,7 @@ public class Muckraker extends Robot {
 	RobotInfo[] robotsInSense;
 	// Explorer Muckraker
 	public MapLocation target;
+	public int explorerType;
 	// Harass Muckraker
 	public MapLocation enemyEC;
 	public MapLocation[] enemyECCircle;
@@ -33,12 +36,17 @@ public class Muckraker extends Robot {
 		super(rc);
 		robotsInExpose = rc.senseNearbyRobots(12, opponentTeam);
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
-		if (roundNum < ROUND_TO_START_DEFENSE) {
+		if (roundNum < ROUND_TO_START_HARASS) {
 			muckrakerType = EXPLORER_MUCKRAKER;
+			if (coinFlip()) {
+				explorerType = EDGE_EXPLORER;
+			} else {
+				explorerType = BOUNCE_EXPLORER;
+			}
 		} else {
-			muckrakerType = DEFENSE_MUCKRAKER;
+			muckrakerType = HARASS_MUCKRAKER;
 		}
-		if (muckrakerType == EXPLORER_MUCKRAKER) {
+		if (explorerType == EDGE_EXPLORER || explorerType == BOUNCE_EXPLORER) {
 			target = getTargetRelativeEC();
 		}
 	}
@@ -49,19 +57,18 @@ public class Muckraker extends Robot {
 	 */
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		// check message to see muckraker type
 		robotsInExpose = rc.senseNearbyRobots(12, opponentTeam);
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
 		exposeOnSight();
+		if (enemyEC == null) {
+			enemyEC = findEnemyEC();
+		}
 		switch (muckrakerType) {
 			case EXPLORER_MUCKRAKER:
 				explorerMuckraker();
 				break;
 			case HARASS_MUCKRAKER:
 				harassMuckraker();
-				break;
-			case DEFENSE_MUCKRAKER:
-				defenseMuckraker();
 				break;
 		}
 	}
@@ -74,12 +81,6 @@ public class Muckraker extends Robot {
 	public void explorerMuckraker() throws GameActionException {
 		// if edge is detected report location to EC if EC does not know map corners
 		// yet, and change target
-		enemyEC = findEnemyEC();
-		if (enemyEC != null) {
-			// send enemy EC coordinates
-			generateCircle();
-			muckrakerType = HARASS_MUCKRAKER;
-		}
 		int[] edges = nav.lookForEdges();
 		if (edges != null) {
 			// raise flag telling it found edge and coordinates of edge
@@ -105,17 +106,7 @@ public class Muckraker extends Robot {
 	}
 
 	/**
-	 * Muckraker that fills a lattice defense formation
-	 * 
-	 * @throws GameActionException
-	 */
-	public void defenseMuckraker() throws GameActionException {
-		// calculate lattice and find open slots
-		// if all slots are filled, change to explore muckraker
-	}
-
-	/**
-	 * Method for all muckrakers to kill any slanders if detected
+	 * Method for all muckrakers to expose any slanders if detected
 	 * 
 	 * @throws GameActionException
 	 */
@@ -188,6 +179,7 @@ public class Muckraker extends Robot {
 				return ri.getLocation();
 			}
 		}
+		// check comms for enemyEC
 		return null;
 	}
 
@@ -220,6 +212,30 @@ public class Muckraker extends Robot {
 		int edgeType = edges[0];
 		MapLocation cornerEdgeLoc = new MapLocation(edges[1], edges[2]);
 		Direction directionToCornerEdge = currLoc.directionTo(cornerEdgeLoc);
+		Direction heading;
+		if (explorerType == BOUNCE_EXPLORER) {
+			heading = randomBounceDirectionAtEdge(cornerEdgeLoc, edgeType, directionToCornerEdge);
+		} else {
+			if (edgeType == nav.NORTHEAST_INT || edgeType == nav.NORTHWEST_INT || edgeType == nav.SOUTHEAST_INT
+					|| edgeType == nav.SOUTHWEST_INT) {
+				if (coinFlip()) {
+					heading = directionToCornerEdge.rotateRight();
+				} else {
+					heading = directionToCornerEdge.rotateLeft();
+				}
+			} else {
+				if (coinFlip()) {
+					heading = directionToCornerEdge.rotateRight().rotateRight();
+				} else {
+					heading = directionToCornerEdge.rotateLeft().rotateLeft();
+				}
+			}
+		}
+		target = new MapLocation(currLoc.x + (heading.dx * 64), currLoc.y + (heading.dy * 64));
+	}
+
+	public Direction randomBounceDirectionAtEdge(MapLocation cornerEdgeLoc, int edgeType,
+			Direction directionToCornerEdge) {
 		Direction iterDirection = directionToCornerEdge.rotateRight().rotateRight();
 		Direction[] possibleDirections;
 		// check if it is a corner or edge and set variables accordingly
@@ -242,8 +258,7 @@ public class Muckraker extends Robot {
 		}
 
 		// pick one of the random directions and calculate target in that direction
-		Direction heading = possibleDirections[(int) (Math.random() * possibleDirections.length)];
-		target = new MapLocation(currLoc.x + heading.dx * 64, currLoc.y + heading.dy * 64);
+		return possibleDirections[(int) (Math.random() * possibleDirections.length)];
 	}
 
 	public void generateCircle() {
