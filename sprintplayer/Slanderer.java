@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Slanderer extends Robot {
 
-	public Slanderer(RobotController rc) {
+	public Slanderer(RobotController rc) throws GameActionException {
 		super(rc);
 	}
 

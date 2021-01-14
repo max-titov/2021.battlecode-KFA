@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Politician extends Robot {
 
-	public Politician(RobotController rc) {
+	public Politician(RobotController rc) throws GameActionException {
 		super(rc);
 	}
 
