@@ -6,13 +6,12 @@ public class Robot {
 	/**
 	 * Constants
 	 */
-	public final int ROUND_TO_START_DEFENSE = 500;
 	public final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
 	public final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
 			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
 
 	/**
-	 * Robot's Attributes
+	 * 'Robot' Object Attributes
 	 */
 	public RobotController rc;
 	public Navigation nav;
@@ -28,6 +27,9 @@ public class Robot {
 	public MapLocation currLoc;
 	public int roundNum;
 	public int message;
+	public int sensorRadSq;
+	public MapLocation myECLoc;
+	public int myECid;
 
 	/**
 	 * Constructor
@@ -48,10 +50,11 @@ public class Robot {
 		influence = rc.getInfluence();
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
+		sensorRadSq = getSensorRadiusSq();
 	}
 
 	/**
-	 * Robot's Methods
+	 * 'Robot' Object Methods
 	 */
 	public void takeTurn() throws GameActionException {
 		robotAge += 1;
@@ -61,5 +64,43 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		// message = comms.checkmessage()
+	}
+
+	public void getECDetails() throws GameActionException {
+		RobotInfo[] robots = rc.senseNearbyRobots(2, myTeam);
+		for (int i = 0; i < robots.length; i++) {
+			RobotInfo ri = robots[i];
+			if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
+				myECLoc = ri.getLocation();
+				myECid = ri.getID();
+			}
+		}
+	}
+
+	public int getSensorRadiusSq() {
+		switch (rc.getType()) {
+			case ENLIGHTENMENT_CENTER:
+				return 40;
+			case POLITICIAN:
+				return 25;
+			case SLANDERER:
+				return 20;
+			case MUCKRAKER:
+				return 30;
+			default:
+				return -1;
+		}
+	}
+
+	public boolean coinFlip() {
+		return Math.random() > 0.5;
+	}
+
+	public Direction randomDirection() {
+		return directions[(int) (Math.random() * directions.length)];
+	}
+
+	public RobotType randomSpawnableRobotType() {
+		return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
 	}
 }
