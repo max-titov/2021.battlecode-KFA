@@ -153,14 +153,8 @@ public class Navigation {
 	}
 
 	public Direction relativeLocToEC(MapLocation currLoc) {
-		RobotInfo[] robots = rc.senseNearbyRobots(2, rc.getTeam());
-		for (int i = 0; i < robots.length; i++) {
-			RobotInfo ri = robots[i];
-			if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				return ri.getLocation().directionTo(currLoc);
-			}
-		}
-		return Direction.NORTH;
+		//return myECLoc.directionTo(currLoc);
+		return null;
 	}
 
 	public double calcTurnsOfPath(double[] path) {
@@ -294,6 +288,10 @@ public class Navigation {
 			default:
 				return -1;
 		}
+	}
+
+	public MapLocation avgLocations(MapLocation loc1, MapLocation loc2){
+		return new MapLocation((loc1.x+loc2.x)/2,(loc1.y+loc2.y)/2);
 	}
 
 	public Direction randomDirection() {

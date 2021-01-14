@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Muckraker extends Robot {
 
-	public Muckraker(RobotController rc) {
+	public Muckraker(RobotController rc) throws GameActionException {
 		super(rc);
 	}
 

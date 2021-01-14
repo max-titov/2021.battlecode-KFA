@@ -35,8 +35,9 @@ public class Robot {
 	 * Constructor
 	 * 
 	 * @param rc
+	 * @throws GameActionException
 	 */
-	public Robot(RobotController rc) {
+	public Robot(RobotController rc) throws GameActionException {
 		this.rc = rc;
 		this.nav = new Navigation(rc);
 		this.comms = new Comms(rc);
@@ -51,6 +52,7 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		sensorRadSq = getSensorRadiusSq();
+		getECDetails();
 	}
 
 	/**
