@@ -35,11 +35,11 @@ public class Robot {
 	 * Constructor
 	 * 
 	 * @param rc
+	 * @throws GameActionException
 	 */
-	public Robot(RobotController rc) {
+	public Robot(RobotController rc) throws GameActionException {
 		this.rc = rc;
-		this.nav = new Navigation(rc);
-		this.comms = new Comms(rc);
+		getECDetails();
 		myTeam = rc.getTeam();
 		opponentTeam = myTeam.opponent();
 		myType = rc.getType();
@@ -51,6 +51,8 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		sensorRadSq = getSensorRadiusSq();
+		this.nav = new Navigation(rc, currLoc, myECLoc);
+		this.comms = new Comms(rc);
 	}
 
 	/**
@@ -64,6 +66,7 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		// message = comms.checkmessage()
+		nav.updateCurrLoc(currLoc);
 	}
 
 	public void getECDetails() throws GameActionException {
@@ -90,6 +93,10 @@ public class Robot {
 			default:
 				return -1;
 		}
+	}
+
+	public boolean coinFlip() {
+		return Math.random() > 0.5;
 	}
 
 	public Direction randomDirection() {

@@ -49,6 +49,11 @@ public class Navigation {
 		this.myECLoc = myECLoc;
 	}
 
+	public void tryMoveToTarget(Direction dir) throws GameActionException {
+		MapLocation target = currLoc.add(dir).add(dir);
+		tryMoveToTarget(target);
+	}
+
 	/**
 	 * Uses pathfinding to find the most efficient route to reach a target location
 	 * 
@@ -391,6 +396,10 @@ public class Navigation {
 	 */
 	public Direction randomDirection() {
 		return directions[(int) (Math.random() * directions.length)];
+	}
+
+	public MapLocation avgLocations(MapLocation loc1, MapLocation loc2) {
+		return new MapLocation((loc1.x + loc2.x) / 2, (loc1.y + loc2.y) / 2);
 	}
 
 	/**
