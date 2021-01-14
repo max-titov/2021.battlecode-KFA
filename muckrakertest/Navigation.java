@@ -32,6 +32,8 @@ public class Navigation {
 	 * Navigation attributes
 	 */
 	public RobotController rc;
+	public MapLocation currLoc;
+	public MapLocation myECLoc;
 	public int noReturnLocLen = 13;
 	public MapLocation[] previousLocs = new MapLocation[noReturnLocLen];
 	public boolean DEBUG = false;
@@ -41,8 +43,10 @@ public class Navigation {
 	 * 
 	 * @param rc
 	 */
-	public Navigation(RobotController rc) {
+	public Navigation(RobotController rc, MapLocation currLoc, MapLocation myECLoc) {
 		this.rc = rc;
+		this.currLoc = currLoc;
+		this.myECLoc = myECLoc;
 	}
 
 	/**
@@ -52,7 +56,6 @@ public class Navigation {
 	 * @throws GameActionException
 	 */
 	public void tryMoveToTarget(MapLocation target) throws GameActionException {
-		MapLocation currLoc = rc.getLocation();
 		shiftPrevLocArray(); // shifts list of previously visited locations
 		if (currLoc.equals(target)) {
 			// if at target, reset previous locations array
@@ -98,7 +101,6 @@ public class Navigation {
 	 * @throws GameActionException
 	 */
 	public void tryMoveToTargetSelectionSort(MapLocation target) throws GameActionException {
-		MapLocation currLoc = rc.getLocation();
 		if (!currLoc.equals(target)) {
 			double[] adjEfficiency = getAdjEfficiencyMap(target);
 			Direction[] bestDirsToMove = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
@@ -163,7 +165,6 @@ public class Navigation {
 	 */
 	public double[] getAdjEfficiencyMap(MapLocation target) throws GameActionException {
 		double[] efficiencies = new double[8];
-		MapLocation currLoc = rc.getLocation();
 		double passabilityWeight = 1.3;
 		double directionWeight = 0.75;
 		double directionalBias = 1.4;
@@ -185,12 +186,10 @@ public class Navigation {
 	/**
 	 * Gets an array of passabilities of adjacent tiles
 	 * 
-	 * @param currLoc
 	 * @return
 	 * @throws GameActionException
 	 */
 	public double[] getAdjPassabilityMap() throws GameActionException {
-		MapLocation currLoc = rc.getLocation();
 		double[] passabilities = new double[8];
 		for (int i = 0; i < 8; i++) {
 			passabilities[i] = rc.sensePassability(currLoc.add(directions[i]));
@@ -201,19 +200,10 @@ public class Navigation {
 	/**
 	 * Finds location relative to EC
 	 * 
-	 * @param currLoc
 	 * @return
 	 */
 	public Direction relativeLocToEC() {
-		MapLocation currLoc = rc.getLocation();
-		RobotInfo[] robots = rc.senseNearbyRobots(2, rc.getTeam());
-		for (int i = 0; i < robots.length; i++) {
-			RobotInfo ri = robots[i];
-			if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				return ri.getLocation().directionTo(currLoc);
-			}
-		}
-		return Direction.NORTH;
+		return myECLoc.directionTo(currLoc);
 	}
 
 	/**
@@ -238,7 +228,6 @@ public class Navigation {
 	 * @throws GameActionException
 	 */
 	public int[] lookForEdges() throws GameActionException {
-		MapLocation currLoc = rc.getLocation();
 		int currX = currLoc.x;
 		int currY = currLoc.y;
 		int cardinalSensorRadius = getCardinalSensorRadius();
@@ -422,6 +411,10 @@ public class Navigation {
 			previousLocs[i] = previousLocs[i + 1];
 		}
 		previousLocs[noReturnLocLen - 1] = null;
+	}
+
+	public void updateCurrLoc(MapLocation currLoc) {
+		this.currLoc = currLoc;
 	}
 
 	/**
