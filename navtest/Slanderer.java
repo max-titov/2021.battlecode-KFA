@@ -49,6 +49,10 @@ public class Slanderer extends Robot {
 	 * @throws GameActionException
 	 */
 	public void bunchSlanderer() throws GameActionException {
+		if(beAPussy()){
+			return;
+		}
+
 		MapLocation targetLocation = null;
 		MapLocation avgSlandererLoc = avgLocNearbySlanderers();
 		MapLocation desiredBunchLoc = newBunchAwayFromEC();
@@ -66,6 +70,40 @@ public class Slanderer extends Robot {
 		if (targetLocation != null){
 			nav.tryMoveToTarget(targetLocation);
 		}
+	}
+
+	public MapLocation avgEnemyMuckLoc() throws GameActionException {
+		int enemyBotsLen = enemyBots.length;
+		int totalX = 0;
+		int totalY = 0;
+		int enemyMuckCount = 0;
+
+		for (int i = 0; i < enemyBotsLen; i++) {
+			RobotInfo ri = enemyBots[i];
+			if (ri.getType().equals(RobotType.MUCKRAKER)) {
+				MapLocation tempLoc = ri.getLocation();
+				totalX += tempLoc.x;
+				totalY += tempLoc.y;
+				enemyMuckCount++;
+			}
+		}
+		if (enemyMuckCount == 0) {
+			return null;
+		}
+		int avgX = totalX / enemyMuckCount;
+		int avgY = totalY / enemyMuckCount;
+		MapLocation avgLoc = new MapLocation(avgX, avgY);
+		return avgLoc;
+	}
+
+	public boolean beAPussy() throws GameActionException {
+		MapLocation avgEnemyMuckLoc = avgEnemyMuckLoc();
+		if(avgEnemyMuckLoc==null){
+			return false;
+		}
+		Direction dirToRun = avgEnemyMuckLoc.directionTo(currLoc);
+		nav.tryMoveToTarget(dirToRun);
+		return true;
 	}
 
 	public MapLocation avgLocNearbySlanderers() throws GameActionException {
@@ -102,7 +140,7 @@ public class Slanderer extends Robot {
 	 * @throws GameActionException
 	 */
 	public MapLocation newBunchAwayFromEC() throws GameActionException {
-		Direction dir = nav.relativeLocToEC(currLoc);
+		Direction dir = nav.relativeLocToEC();
 		MapLocation testLoc = myECLoc.add(Direction.CENTER);
 		for (int i = 0; i < 8; i++) {
 			boolean foundSpot = true;

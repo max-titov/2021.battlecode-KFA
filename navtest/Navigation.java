@@ -3,10 +3,13 @@ package navtest;
 import battlecode.common.*;
 
 public class Navigation {
-
+	/**
+	 * Constants
+	 */
 	public final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
 			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
 	public final int directionsLen = directions.length;
+
 	public final Direction N = Direction.NORTH;
 	public final Direction NW = Direction.NORTHWEST;
 	public final Direction W = Direction.WEST;
@@ -25,19 +28,39 @@ public class Navigation {
 	public final int WEST_INT = 6;
 	public final int NORTHWEST_INT = 7;
 
-	private RobotController rc;
-
+	/**
+	 * Navigation attributes
+	 */
+	public RobotController rc;
+	public MapLocation currLoc;
+	public MapLocation myECLoc;
 	public int noReturnLocLen = 13;
 	public MapLocation[] previousLocs = new MapLocation[noReturnLocLen];
-
 	public boolean DEBUG = false;
 
-	public Navigation(RobotController rc) {
+	/**
+	 * Constructor
+	 * 
+	 * @param rc
+	 */
+	public Navigation(RobotController rc, MapLocation currLoc, MapLocation myECLoc) {
 		this.rc = rc;
+		this.currLoc = currLoc;
+		this.myECLoc = myECLoc;
 	}
 
+	public void tryMoveToTarget(Direction dir) throws GameActionException {
+		MapLocation target = currLoc.add(dir).add(dir);
+		tryMoveToTarget(target);
+	}
+
+	/**
+	 * Uses pathfinding to find the most efficient route to reach a target location
+	 * 
+	 * @param target
+	 * @throws GameActionException
+	 */
 	public void tryMoveToTarget(MapLocation target) throws GameActionException {
-		MapLocation currLoc = rc.getLocation();
 		shiftPrevLocArray(); // shifts list of previously visited locations
 		if (currLoc.equals(target)) {
 			// if at target, reset previous locations array
@@ -75,9 +98,14 @@ public class Navigation {
 		}
 	}
 
-	// this method is useless right now
+	/**
+	 * THIS DOES NOT WORK RIGHT NOW Uses selection sort in pathfinding to find most
+	 * efficient route to reach a target location
+	 * 
+	 * @param target
+	 * @throws GameActionException
+	 */
 	public void tryMoveToTargetSelectionSort(MapLocation target) throws GameActionException {
-		MapLocation currLoc = rc.getLocation();
 		if (!currLoc.equals(target)) {
 			double[] adjEfficiency = getAdjEfficiencyMap(target);
 			Direction[] bestDirsToMove = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
@@ -105,10 +133,14 @@ public class Navigation {
 					break;
 				}
 			}
-			// currLoc = rc.getLocation();
 		}
 	}
 
+	/**
+	 * Prints a list
+	 * 
+	 * @param list
+	 */
 	public void printList(Object[] list) {
 		for (int i = 0; i < list.length; i++) {
 			System.out.print(list[i].toString() + " ");
@@ -116,6 +148,11 @@ public class Navigation {
 		System.out.println();
 	}
 
+	/**
+	 * Prints a list
+	 * 
+	 * @param list
+	 */
 	public void printList(double[] list) {
 		for (int i = 0; i < list.length; i++) {
 			System.out.print(String.format("%.2g%n", list[i]) + " ");
@@ -123,9 +160,16 @@ public class Navigation {
 		System.out.println();
 	}
 
+	/**
+	 * Returns an array of efficiencies of all adjacent tiles depending on target
+	 * location
+	 * 
+	 * @param target
+	 * @return
+	 * @throws GameActionException
+	 */
 	public double[] getAdjEfficiencyMap(MapLocation target) throws GameActionException {
 		double[] efficiencies = new double[8];
-		MapLocation currLoc = rc.getLocation();
 		double passabilityWeight = 1.3;
 		double directionWeight = 0.75;
 		double directionalBias = 1.4;
@@ -144,7 +188,13 @@ public class Navigation {
 		return efficiencies;
 	}
 
-	public double[] getAdjPassabilityMap(MapLocation currLoc) throws GameActionException {
+	/**
+	 * Gets an array of passabilities of adjacent tiles
+	 * 
+	 * @return
+	 * @throws GameActionException
+	 */
+	public double[] getAdjPassabilityMap() throws GameActionException {
 		double[] passabilities = new double[8];
 		for (int i = 0; i < 8; i++) {
 			passabilities[i] = rc.sensePassability(currLoc.add(directions[i]));
@@ -152,21 +202,37 @@ public class Navigation {
 		return passabilities;
 	}
 
-	public Direction relativeLocToEC(MapLocation currLoc) {
-		//return myECLoc.directionTo(currLoc);
-		return null;
+	/**
+	 * Finds location relative to EC
+	 * 
+	 * @return
+	 */
+	public Direction relativeLocToEC() {
+		return myECLoc.directionTo(currLoc);
 	}
 
-	public double calcTurnsOfPath(double[] path) {
+	/**
+	 * Calculates the turns it would take to move on a path given the passabilities
+	 * of the tiles in the path
+	 * 
+	 * @param pathPassabilities
+	 * @return
+	 */
+	public double calcTurnsOfPath(double[] pathPassabilities) {
 		double cooldown = rc.getCooldownTurns();
-		for (int i = 0; i < path.length; i++) {
-			cooldown += getBaseCooldown() / path[i];
+		for (int i = 0; i < pathPassabilities.length; i++) {
+			cooldown += getBaseCooldown() / pathPassabilities[i];
 		}
 		return cooldown;
 	}
 
+	/**
+	 * looks for edges
+	 * 
+	 * @return
+	 * @throws GameActionException
+	 */
 	public int[] lookForEdges() throws GameActionException {
-		MapLocation currLoc = rc.getLocation();
 		int currX = currLoc.x;
 		int currY = currLoc.y;
 		int cardinalSensorRadius = getCardinalSensorRadius();
@@ -203,7 +269,7 @@ public class Navigation {
 			checkSouth = new MapLocation(testLoc.x, testLoc.y);
 		}
 		if (westNotOnMap) {
-			MapLocation testLoc = new MapLocation(checkNorth.x + 1, checkNorth.y);
+			MapLocation testLoc = new MapLocation(checkWest.x + 1, checkWest.y);
 			while (!rc.onTheMap(testLoc)) {
 				testLoc = new MapLocation(testLoc.x + 1, testLoc.y);
 			}
@@ -260,6 +326,11 @@ public class Navigation {
 		return returnArr;
 	}
 
+	/**
+	 * returns base cooldown based on robot type
+	 * 
+	 * @return
+	 */
 	public double getBaseCooldown() {
 		switch (rc.getType()) {
 			case ENLIGHTENMENT_CENTER:
@@ -275,6 +346,11 @@ public class Navigation {
 		}
 	}
 
+	/**
+	 * returns cardinal sensor radius based on robot type
+	 * 
+	 * @return
+	 */
 	public int getCardinalSensorRadius() {
 		switch (rc.getType()) {
 			case ENLIGHTENMENT_CENTER:
@@ -290,12 +366,17 @@ public class Navigation {
 		}
 	}
 
-	public MapLocation avgLocations(MapLocation loc1, MapLocation loc2){
-		return new MapLocation((loc1.x+loc2.x)/2,(loc1.y+loc2.y)/2);
-	}
-
+	/**
+	 * returns a random direction
+	 * 
+	 * @return
+	 */
 	public Direction randomDirection() {
 		return directions[(int) (Math.random() * directions.length)];
+	}
+
+	public MapLocation avgLocations(MapLocation loc1, MapLocation loc2){
+		return new MapLocation((loc1.x+loc2.x)/2,(loc1.y+loc2.y)/2);
 	}
 
 	/**
@@ -341,6 +422,17 @@ public class Navigation {
 		previousLocs[noReturnLocLen - 1] = null;
 	}
 
+	public void updateCurrLoc(MapLocation currLoc) {
+		this.currLoc = currLoc;
+	}
+
+	/**
+	 * tries to move in a direction if it can
+	 * 
+	 * @param dir
+	 * @return
+	 * @throws GameActionException
+	 */
 	public boolean tryMove(Direction dir) throws GameActionException {
 		if (rc.canMove(dir)) {
 			rc.move(dir);
