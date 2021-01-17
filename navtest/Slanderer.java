@@ -68,7 +68,7 @@ public class Slanderer extends Robot {
 		}
 		
 		if (targetLocation != null){
-			nav.tryMoveToTarget(targetLocation);
+			nav.bugNav(targetLocation);
 		}
 	}
 
