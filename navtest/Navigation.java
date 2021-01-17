@@ -61,7 +61,6 @@ public class Navigation {
 	 * @throws GameActionException
 	 */
 	public void tryMoveToTarget(MapLocation target) throws GameActionException {
-		shiftPrevLocArray(); // shifts list of previously visited locations
 		if (currLoc.equals(target)) {
 			// if at target, reset previous locations array
 			previousLocs = new MapLocation[noReturnLocLen];
@@ -93,6 +92,7 @@ public class Navigation {
 		for (int i = 0; i < directionsLen; i++) {
 			Direction tryMoveDirection = bestDirsToMove[i];
 			if (tryMoveAvoidPrevLocs(tryMoveDirection)) {
+				shiftPrevLocArray(); // shifts list of previously visited locations
 				break;
 			}
 		}
