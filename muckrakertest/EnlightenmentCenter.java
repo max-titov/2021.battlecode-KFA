@@ -7,6 +7,7 @@ public class EnlightenmentCenter extends Robot {
 	boolean created = false;
 	int influence = 1;
 	int dirIndex;
+	int slanderers = 0;
 
 	public EnlightenmentCenter(RobotController rc) throws GameActionException {
 		super(rc);
@@ -19,7 +20,10 @@ public class EnlightenmentCenter extends Robot {
 		if (rc.canBuildRobot(toBuild, dir, influence) && !created) {
 			rc.buildRobot(toBuild, dir, influence);
 			dirIndex++;
-			created = true;
+			slanderers++;
+			if (slanderers == 9) {
+				created = true;
+			}
 		}
 	}
 

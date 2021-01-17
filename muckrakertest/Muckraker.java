@@ -16,8 +16,8 @@ public class Muckraker extends Robot {
 	 * Muckraker's attributes
 	 */
 	public int muckrakerType;
-	RobotInfo[] robotsInExpose;
-	RobotInfo[] robotsInSense;
+	public RobotInfo[] robotsInExpose;
+	public RobotInfo[] robotsInSense;
 	// Explorer Muckraker
 	public MapLocation target;
 	public Direction heading;
@@ -26,7 +26,9 @@ public class Muckraker extends Robot {
 	public int lastEdgeType = -1;
 	// Harass Muckraker
 	public MapLocation enemyEC;
-	public MapLocation[] enemyECCircle;
+	public MapLocation[] sitLocs;
+	public MapLocation sitLoc;
+	public int sitIndex;
 	public int enemyECCircleIndex;
 
 	/**
@@ -50,7 +52,7 @@ public class Muckraker extends Robot {
 				explorerType = BOUNCE_EXPLORER;
 			}
 		} else {
-			muckrakerType = HARASS_MUCKRAKER;
+			explorerType = BOUNCE_EXPLORER;
 		}
 	}
 
@@ -63,13 +65,19 @@ public class Muckraker extends Robot {
 	 */
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
+		switch (muckrakerType) {
+			case EXPLORER_MUCKRAKER:
+				break;
+			case HARASS_MUCKRAKER:
+				break;
+		}
 		robotsInExpose = rc.senseNearbyRobots(12, opponentTeam);
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
 		if (exposeOnSight()) {
 			return;
 		}
-		if (enemyEC == null) {
-			findEnemyEC();
+		if (roundNum >= ROUND_TO_START_HARASS && enemyEC != null) {
+			muckrakerType = HARASS_MUCKRAKER;
 		}
 		switch (muckrakerType) {
 			case EXPLORER_MUCKRAKER:
@@ -88,8 +96,9 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public void explorerMuckraker() throws GameActionException {
-		// comms.reportEdge
+		findEnemyEC();
 		int[] edges = nav.lookForEdges();
+		// comms.reportEdge
 		if (edges == null) {
 			edgeDetected = false;
 		} else if (edges[0] != lastEdgeType) {
@@ -105,13 +114,13 @@ public class Muckraker extends Robot {
 		} else {
 			edgeDetected = true;
 		}
+		System.out.println("Heading: " + heading + " Target: " + target);
 		if (edges != null && !edgeDetected) {
 			// raise flag telling it found edge and coordinates of edge
 			edgeDetected = true;
 			updateTargetAtEdge(edges);
 			lastEdgeType = edges[0];
 		}
-		System.out.println(heading);
 		nav.tryMoveToTarget(target);
 	}
 
@@ -121,7 +130,28 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public void harassMuckraker() throws GameActionException {
-		generateSitLocations();
+		if (sitLocs == null) {
+			generateSitLocations();
+		}
+		if (sitLoc == null) {
+			sitLoc = sitLocs[sitIndex];
+		}
+		if (currLoc.equals(sitLoc)) {
+			return;
+		}
+		if (!rc.canSenseLocation(enemyEC)) {
+			nav.tryMoveToTarget(enemyEC);
+			return;
+		}
+		while (!rc.canSenseLocation(sitLoc) || rc.isLocationOccupied(sitLoc)) {
+			sitIndex++;
+			if (sitIndex == sitLocs.length) {
+				sitIndex = 0;
+				break;
+			}
+			sitLoc = sitLocs[sitIndex];
+		}
+		nav.tryMoveToTarget(sitLoc);
 	}
 
 	/**
@@ -134,6 +164,9 @@ public class Muckraker extends Robot {
 	public boolean exposeOnSight() throws GameActionException {
 		if (robotsInExpose.length > 0) {
 			MapLocation exposeLoc = findMaxConv(false);
+			if (exposeLoc == null) {
+				return false;
+			}
 			if (rc.canExpose(exposeLoc)) {
 				rc.expose(exposeLoc);
 			}
@@ -141,6 +174,9 @@ public class Muckraker extends Robot {
 			return false;
 		} else if (robotsInSense.length > 0) {
 			MapLocation robotLoc = findMaxConv(true);
+			if (robotLoc == null) {
+				return false;
+			}
 			nav.tryMoveToTarget(robotLoc);
 			return true;
 		}
@@ -157,26 +193,30 @@ public class Muckraker extends Robot {
 	public MapLocation findMaxConv(boolean checkMaxRadius) {
 		if (checkMaxRadius) {
 			int indexOfMaxConv = 0;
+			boolean foundSlanderer = false;
 			for (int i = 0; i < robotsInSense.length; i++) {
 				RobotInfo ri = robotsInSense[i];
 				if (ri.getType().equals(RobotType.SLANDERER)) {
+					foundSlanderer = true;
 					if (ri.getConviction() > robotsInSense[indexOfMaxConv].getConviction()) {
 						indexOfMaxConv = i;
 					}
 				}
 			}
-			return robotsInSense[indexOfMaxConv].getLocation();
+			return foundSlanderer ? robotsInSense[indexOfMaxConv].getLocation() : null;
 		} else {
 			int indexOfMaxConv = 0;
+			boolean foundSlanderer = false;
 			for (int i = 0; i < robotsInExpose.length; i++) {
 				RobotInfo ri = robotsInExpose[i];
 				if (ri.getType().equals(RobotType.SLANDERER)) {
+					foundSlanderer = true;
 					if (ri.getConviction() > robotsInExpose[indexOfMaxConv].getConviction()) {
 						indexOfMaxConv = i;
 					}
 				}
 			}
-			return robotsInExpose[indexOfMaxConv].getLocation();
+			return foundSlanderer ? robotsInSense[indexOfMaxConv].getLocation() : null;
 		}
 	}
 
@@ -188,12 +228,14 @@ public class Muckraker extends Robot {
 		for (int i = 0; i < robotsInSense.length; i++) {
 			RobotInfo ri = robotsInSense[i];
 			if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				System.out.println("Found enemy EC");
+				// System.out.println("Found enemy EC");
 				enemyEC = ri.getLocation();
 				return;
 			}
 		}
-		// check comms for enemyEC
+		if (muckrakerType == HARASS_MUCKRAKER) {
+			// check comms for enemyEC
+		}
 	}
 
 	/**
@@ -236,14 +278,14 @@ public class Muckraker extends Robot {
 			// the direction it just came from
 			int j = 0;
 			for (int i = 0; i <= possibleDirections.length; i++) {
-				System.out.println("Iter direction: " + iterDirection.toString());
-				if (iterDirection.equals(directionToCornerEdge.opposite())) {
-					iterDirection = iterDirection.rotateRight();
-					continue;
+				if (!iterDirection.equals(heading.opposite())) {
+					if (j == 2) {
+						break;
+					}
+					possibleDirections[j] = iterDirection;
+					j++;
 				}
-				possibleDirections[j] = iterDirection;
 				iterDirection = iterDirection.rotateRight();
-				j++;
 			}
 			// pick one of the random directions and calculate target in that direction
 			heading = possibleDirections[(int) (Math.random() * possibleDirections.length)];
@@ -265,5 +307,22 @@ public class Muckraker extends Robot {
 				}
 			}
 		}
+	}
+
+	/**
+	 * creates an array of map locations around the enemy EC
+	 */
+	public void generateSitLocations() {
+		sitLocs = new MapLocation[8];
+		int x = enemyEC.x;
+		int y = enemyEC.y;
+		sitLocs[0] = new MapLocation(x, y + 1);
+		sitLocs[1] = new MapLocation(x + 1, y + 1);
+		sitLocs[2] = new MapLocation(x + 1, y);
+		sitLocs[3] = new MapLocation(x + 1, y - 1);
+		sitLocs[4] = new MapLocation(x, y - 1);
+		sitLocs[5] = new MapLocation(x - 1, y - 1);
+		sitLocs[6] = new MapLocation(x - 1, y);
+		sitLocs[7] = new MapLocation(x - 1, y + 1);
 	}
 }
