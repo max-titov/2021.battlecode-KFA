@@ -17,6 +17,7 @@ public class EnlightenmentCenter extends Robot {
 		Direction dir = Direction.WEST;
 		if (rc.canBuildRobot(toBuild, dir, influence) && !created) {
 			rc.buildRobot(toBuild, dir, influence);
+			created = true;
 		}
 	}
 

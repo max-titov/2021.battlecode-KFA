@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class EnlightenmentCenter extends Robot {
 
-	public EnlightenmentCenter(RobotController rc) {
+	public EnlightenmentCenter(RobotController rc) throws GameActionException {
 		super(rc);
 	}
 

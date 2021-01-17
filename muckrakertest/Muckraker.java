@@ -20,6 +20,7 @@ public class Muckraker extends Robot {
 	RobotInfo[] robotsInSense;
 	// Explorer Muckraker
 	public MapLocation target;
+	public Direction heading;
 	public int explorerType;
 	public boolean edgeDetected;
 	public int lastEdgeType = -1;
@@ -43,9 +44,9 @@ public class Muckraker extends Robot {
 			muckrakerType = EXPLORER_MUCKRAKER;
 			target = getTargetRelativeEC();
 			if (coinFlip()) {
-				explorerType = BOUNCE_EXPLORER;
+				explorerType = EDGE_EXPLORER;
 			} else {
-				explorerType = BOUNCE_EXPLORER;
+				explorerType = EDGE_EXPLORER;
 			}
 		} else {
 			muckrakerType = HARASS_MUCKRAKER;
@@ -84,9 +85,29 @@ public class Muckraker extends Robot {
 	public void explorerMuckraker() throws GameActionException {
 		// if edge is detected report location to EC if EC does not know map corners
 		// yet, and change target
+		System.out.println("Heading is " + heading.toString());
 		int[] edges = nav.lookForEdges();
-		if (edges == null || edges[0] != lastEdgeType) {
+		if (edges == null) {
 			edgeDetected = false;
+		} else if (edges[0] != lastEdgeType) {
+			if (lastEdgeType % 2 == 1) {
+				if (edges[0] == ((lastEdgeType + 9) % 8) || edges[0] == ((lastEdgeType + 7) % 8)) {
+					lastEdgeType = edges[0];
+				} else {
+					edgeDetected = false;
+				}
+			} else {
+				edgeDetected = false;
+			}
+		} else {
+			edgeDetected = true;
+		}
+		if (edges == null) {
+			System.out.println("Edges is null: True" + "\nLast Edge Type: " + nav.edgeTypeToString(lastEdgeType)
+					+ "\nEdgeDetected: " + edgeDetected);
+		} else {
+			System.out.println("Edges is null: False" + "\nLast Edge Type: " + nav.edgeTypeToString(lastEdgeType)
+					+ "\nCurrent Edge Type: " + nav.edgeTypeToString(edges[0]) + "\nEdgeDetected: " + edgeDetected);
 		}
 		if (edges != null && !edgeDetected) {
 			// raise flag telling it found edge and coordinates of edge
@@ -194,8 +215,8 @@ public class Muckraker extends Robot {
 	 * @return
 	 */
 	public MapLocation getTargetRelativeEC() {
-		Direction relativeLocToEC = nav.relativeLocToEC();
-		return new MapLocation(currLoc.x + relativeLocToEC.dx * 64, currLoc.y + relativeLocToEC.dy * 64);
+		heading = nav.relativeLocToEC();
+		return new MapLocation(currLoc.x + heading.dx * 64, currLoc.y + heading.dy * 64);
 	}
 
 	/**
@@ -208,12 +229,10 @@ public class Muckraker extends Robot {
 		int edgeType = edges[0];
 		MapLocation cornerEdgeLoc = new MapLocation(edges[1], edges[2]);
 		Direction directionToCornerEdge = currLoc.directionTo(cornerEdgeLoc);
-		Direction heading;
 		if (explorerType == BOUNCE_EXPLORER) {
 			heading = randomBounceDirectionAtEdge(cornerEdgeLoc, edgeType, directionToCornerEdge);
 		} else {
-			if (edgeType == nav.NORTHEAST_INT || edgeType == nav.NORTHWEST_INT || edgeType == nav.SOUTHEAST_INT
-					|| edgeType == nav.SOUTHWEST_INT) {
+			if (edgeType % 2 == 1) {
 				if (coinFlip()) {
 					heading = directionToCornerEdge.rotateRight();
 				} else {
@@ -227,12 +246,12 @@ public class Muckraker extends Robot {
 				}
 			}
 		}
-		System.out.println("New heading is: " + heading.toString());
 		target = new MapLocation(currLoc.x + (heading.dx * 64), currLoc.y + (heading.dy * 64));
 	}
 
 	public Direction randomBounceDirectionAtEdge(MapLocation cornerEdgeLoc, int edgeType,
 			Direction directionToCornerEdge) {
+		System.out.println(" Corner/Edge location: " + cornerEdgeLoc + " edge type: " + nav.edgeTypeToString(edgeType));
 		Direction iterDirection = directionToCornerEdge.rotateRight().rotateRight();
 		Direction[] possibleDirections;
 		// check if it is a corner or edge and set variables accordingly

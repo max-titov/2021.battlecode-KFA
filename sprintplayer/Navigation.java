@@ -326,6 +326,29 @@ public class Navigation {
 		return returnArr;
 	}
 
+	public String edgeTypeToString(int type) {
+		switch (type) {
+			case NORTH_INT:
+				return "NORTH";
+			case NORTHEAST_INT:
+				return "NORTH EAST";
+			case EAST_INT:
+				return "EAST";
+			case SOUTHEAST_INT:
+				return "SOUTH EAST";
+			case SOUTH_INT:
+				return "SOUTH";
+			case SOUTHWEST_INT:
+				return "SOUTHWEST";
+			case WEST_INT:
+				return "WEST";
+			case NORTHWEST_INT:
+				return "NORTH WEST";
+			default:
+				return "NOT AN EDGE";
+		}
+	}
+
 	/**
 	 * returns base cooldown based on robot type
 	 * 
@@ -375,8 +398,8 @@ public class Navigation {
 		return directions[(int) (Math.random() * directions.length)];
 	}
 
-	public MapLocation avgLocations(MapLocation loc1, MapLocation loc2){
-		return new MapLocation((loc1.x+loc2.x)/2,(loc1.y+loc2.y)/2);
+	public MapLocation avgLocations(MapLocation loc1, MapLocation loc2) {
+		return new MapLocation((loc1.x + loc2.x) / 2, (loc1.y + loc2.y) / 2);
 	}
 
 	/**

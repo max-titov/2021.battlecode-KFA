@@ -264,7 +264,7 @@ public class Navigation {
 			checkSouth = new MapLocation(testLoc.x, testLoc.y);
 		}
 		if (westNotOnMap) {
-			MapLocation testLoc = new MapLocation(checkNorth.x + 1, checkNorth.y);
+			MapLocation testLoc = new MapLocation(checkWest.x + 1, checkWest.y);
 			while (!rc.onTheMap(testLoc)) {
 				testLoc = new MapLocation(testLoc.x + 1, testLoc.y);
 			}
@@ -319,6 +319,29 @@ public class Navigation {
 		returnArr[2] = locationToSend.y;
 
 		return returnArr;
+	}
+
+	public String edgeTypeToString(int type) {
+		switch (type) {
+			case NORTH_INT:
+				return "NORTH";
+			case NORTHEAST_INT:
+				return "NORTH EAST";
+			case EAST_INT:
+				return "EAST";
+			case SOUTHEAST_INT:
+				return "SOUTH EAST";
+			case SOUTH_INT:
+				return "SOUTH";
+			case SOUTHWEST_INT:
+				return "SOUTHWEST";
+			case WEST_INT:
+				return "WEST";
+			case NORTHWEST_INT:
+				return "NORTH WEST";
+			default:
+				return "NOT AN EDGE";
+		}
 	}
 
 	/**
