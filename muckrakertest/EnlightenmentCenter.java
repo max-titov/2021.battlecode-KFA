@@ -15,11 +15,11 @@ public class EnlightenmentCenter extends Robot {
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		RobotType toBuild = RobotType.MUCKRAKER;
-		Direction dir = nav.directions[dirIndex];
+		Direction dir = nav.randomDirection();
 		if (rc.canBuildRobot(toBuild, dir, influence) && !created) {
 			rc.buildRobot(toBuild, dir, influence);
-			created = true;
 			dirIndex++;
+			created = true;
 		}
 	}
 

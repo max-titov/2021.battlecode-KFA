@@ -321,6 +321,29 @@ public class Navigation {
 		return returnArr;
 	}
 
+	public Direction edgeTypeToDir(int type) {
+		switch (type) {
+			case NORTH_INT:
+				return Direction.NORTH;
+			case NORTHEAST_INT:
+				return Direction.NORTHEAST;
+			case EAST_INT:
+				return Direction.EAST;
+			case SOUTHEAST_INT:
+				return Direction.SOUTHEAST;
+			case SOUTH_INT:
+				return Direction.SOUTH;
+			case SOUTHWEST_INT:
+				return Direction.SOUTHWEST;
+			case WEST_INT:
+				return Direction.WEST;
+			case NORTHWEST_INT:
+				return Direction.NORTHWEST;
+			default:
+				return Direction.NORTH;
+		}
+	}
+
 	public String edgeTypeToString(int type) {
 		switch (type) {
 			case NORTH_INT:
