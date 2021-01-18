@@ -19,6 +19,7 @@ public class Politician extends Robot {
 	public RobotInfo[] enemyBots;
 	public RobotInfo[] alliedBots;
 	public RobotInfo[] neutralBots;
+	public RobotInfo[] robotsInSpeech;
 
 
 	public boolean clockwise = true; //what direction the politician will be circling the slanderer group
@@ -35,6 +36,7 @@ public class Politician extends Robot {
 		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
 		neutralBots = rc.senseNearbyRobots(sensorRadSq, Team.NEUTRAL);
+		robotsInSpeech = rc.senseNearbyRobots(9);
 		politicianType=HERDER_POLITICIAN;
 		//nav.tryMove(randomDirection());
 		switch (politicianType) {
@@ -45,6 +47,8 @@ public class Politician extends Robot {
 	}
 
 	public void herderPolitician() throws GameActionException {
+		shouldEmpower();
+
 		MapLocation avgLocNearbySlanderers = avgLocNearbySlanderers();
 		if(avgLocNearbySlanderers==null){
 			//TODO: MAKE IT NOT MOVE RANDOMLY HERE
@@ -66,11 +70,43 @@ public class Politician extends Robot {
 			moveDir = rotate(rotate(dirToSlandererAvg));
 		}
 
-		if(!rc.onTheMap(currLoc.add(moveDir))){
+		if(!rc.onTheMap(currLoc.add(moveDir).add(moveDir))){
 			clockwise = !clockwise;
 			return;
 		}
 		nav.bugNav(moveDir);
+	}
+
+	public boolean shouldEmpower() throws GameActionException {
+		int empowerPower = (int)(conviction*rc.getEmpowerFactor(myTeam, 0));
+		if(empowerPower<=10){
+			//TODO: if a muck killed a slanderer(s), then this might be the wrong move
+			return false;
+		}
+		boolean shouldSpeech = false;
+		int robotsInSpeechCount = robotsInSpeech.length;
+		boolean enemyMuckrackerInRad = false;
+		for(int i = 0; i<robotsInSpeechCount;i++){
+			RobotInfo ri = robotsInSpeech[i];
+			Team tempTeam = ri.getTeam();
+			RobotType tempType = ri.getType();
+			if(tempTeam.equals(opponentTeam) && tempType.equals(RobotType.MUCKRAKER)){
+				enemyMuckrackerInRad = true;
+			}
+		}
+
+		//TODO: add more conditions for when a politician should explode
+
+		if(enemyMuckrackerInRad){
+			shouldSpeech=true;
+		}
+
+		if(shouldSpeech && rc.canEmpower(9)){
+			rc.empower(9);
+			return true;
+		}
+		return false;
+
 	}
 
 	public Direction rotate(Direction dir) throws GameActionException {
