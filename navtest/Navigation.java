@@ -58,10 +58,12 @@ public class Navigation {
 	}
 
 	public void bugNav(Direction dir) throws GameActionException {
-		Direction[] tryDirs = {dir,dir.rotateLeft(), dir.rotateRight(),dir.rotateLeft().rotateLeft(),dir.rotateRight().rotateRight(),dir.rotateLeft().rotateLeft().rotateLeft(),dir.rotateRight().rotateRight().rotateRight()};
+		Direction[] tryDirs = { dir, dir.rotateLeft(), dir.rotateRight(), dir.rotateLeft().rotateLeft(),
+				dir.rotateRight().rotateRight(), dir.rotateLeft().rotateLeft().rotateLeft(),
+				dir.rotateRight().rotateRight().rotateRight() };
 		int tryDirsLen = tryDirs.length;
-		for(int i =0;i<tryDirsLen;i++){
-			if(tryMove(tryDirs[i])){
+		for (int i = 0; i < tryDirsLen; i++) {
+			if (tryMove(tryDirs[i])) {
 				return;
 			}
 		}
@@ -72,11 +74,10 @@ public class Navigation {
 	}
 
 	public void simpleExploration(Direction dir) throws GameActionException {
-		if(!dir.equals(currentExplorationDir)){
+		if (!dir.equals(currentExplorationDir)) {
 			movesInCurrentDir = 0;
 			currentExplorationDir = dir;
-		}
-		else if(movesInCurrentDir>=movesInCurrentDirBeforeSwitch){
+		} else if (movesInCurrentDir >= movesInCurrentDirBeforeSwitch) {
 			movesInCurrentDir = 0;
 			currentExplorationDir = randomDirection();
 		}
@@ -361,6 +362,52 @@ public class Navigation {
 		return returnArr;
 	}
 
+	public Direction edgeTypeToDir(int type) {
+		switch (type) {
+			case NORTH_INT:
+				return Direction.NORTH;
+			case NORTHEAST_INT:
+				return Direction.NORTHEAST;
+			case EAST_INT:
+				return Direction.EAST;
+			case SOUTHEAST_INT:
+				return Direction.SOUTHEAST;
+			case SOUTH_INT:
+				return Direction.SOUTH;
+			case SOUTHWEST_INT:
+				return Direction.SOUTHWEST;
+			case WEST_INT:
+				return Direction.WEST;
+			case NORTHWEST_INT:
+				return Direction.NORTHWEST;
+			default:
+				return Direction.NORTH;
+		}
+	}
+
+	public String edgeTypeToString(int type) {
+		switch (type) {
+			case NORTH_INT:
+				return "NORTH";
+			case NORTHEAST_INT:
+				return "NORTH EAST";
+			case EAST_INT:
+				return "EAST";
+			case SOUTHEAST_INT:
+				return "SOUTH EAST";
+			case SOUTH_INT:
+				return "SOUTH";
+			case SOUTHWEST_INT:
+				return "SOUTHWEST";
+			case WEST_INT:
+				return "WEST";
+			case NORTHWEST_INT:
+				return "NORTH WEST";
+			default:
+				return "NOT AN EDGE";
+		}
+	}
+
 	/**
 	 * returns base cooldown based on robot type
 	 * 
@@ -410,8 +457,8 @@ public class Navigation {
 		return directions[(int) (Math.random() * directions.length)];
 	}
 
-	public MapLocation avgLocations(MapLocation loc1, MapLocation loc2){
-		return new MapLocation((loc1.x+loc2.x)/2,(loc1.y+loc2.y)/2);
+	public MapLocation avgLocations(MapLocation loc1, MapLocation loc2) {
+		return new MapLocation((loc1.x + loc2.x) / 2, (loc1.y + loc2.y) / 2);
 	}
 
 	/**
@@ -457,6 +504,11 @@ public class Navigation {
 		previousLocs[noReturnLocLen - 1] = null;
 	}
 
+	/**
+	 * Updates the current location for nav
+	 * 
+	 * @param currLoc
+	 */
 	public void updateCurrLoc(MapLocation currLoc) {
 		this.currLoc = currLoc;
 	}

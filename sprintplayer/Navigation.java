@@ -38,6 +38,10 @@ public class Navigation {
 	public MapLocation[] previousLocs = new MapLocation[noReturnLocLen];
 	public boolean DEBUG = false;
 
+	public Direction currentExplorationDir = randomDirection();
+	public int movesInCurrentDir = 0;
+	public final int movesInCurrentDirBeforeSwitch = 8;
+
 	/**
 	 * Constructor
 	 * 
@@ -47,6 +51,38 @@ public class Navigation {
 		this.rc = rc;
 		this.currLoc = currLoc;
 		this.myECLoc = myECLoc;
+	}
+
+	public void bugNav(MapLocation loc) throws GameActionException {
+		bugNav(currLoc.directionTo(loc));
+	}
+
+	public void bugNav(Direction dir) throws GameActionException {
+		Direction[] tryDirs = { dir, dir.rotateLeft(), dir.rotateRight(), dir.rotateLeft().rotateLeft(),
+				dir.rotateRight().rotateRight(), dir.rotateLeft().rotateLeft().rotateLeft(),
+				dir.rotateRight().rotateRight().rotateRight() };
+		int tryDirsLen = tryDirs.length;
+		for (int i = 0; i < tryDirsLen; i++) {
+			if (tryMove(tryDirs[i])) {
+				return;
+			}
+		}
+	}
+
+	public void simpleExploration() throws GameActionException {
+		simpleExploration(currentExplorationDir);
+	}
+
+	public void simpleExploration(Direction dir) throws GameActionException {
+		if (!dir.equals(currentExplorationDir)) {
+			movesInCurrentDir = 0;
+			currentExplorationDir = dir;
+		} else if (movesInCurrentDir >= movesInCurrentDirBeforeSwitch) {
+			movesInCurrentDir = 0;
+			currentExplorationDir = randomDirection();
+		}
+		bugNav(currentExplorationDir);
+		movesInCurrentDir++;
 	}
 
 	public void tryMoveToTarget(Direction dir) throws GameActionException {
@@ -61,7 +97,6 @@ public class Navigation {
 	 * @throws GameActionException
 	 */
 	public void tryMoveToTarget(MapLocation target) throws GameActionException {
-		shiftPrevLocArray(); // shifts list of previously visited locations
 		if (currLoc.equals(target)) {
 			// if at target, reset previous locations array
 			previousLocs = new MapLocation[noReturnLocLen];
@@ -93,6 +128,7 @@ public class Navigation {
 		for (int i = 0; i < directionsLen; i++) {
 			Direction tryMoveDirection = bestDirsToMove[i];
 			if (tryMoveAvoidPrevLocs(tryMoveDirection)) {
+				shiftPrevLocArray(); // shifts list of previously visited locations
 				break;
 			}
 		}
@@ -326,6 +362,29 @@ public class Navigation {
 		return returnArr;
 	}
 
+	public Direction edgeTypeToDir(int type) {
+		switch (type) {
+			case NORTH_INT:
+				return Direction.NORTH;
+			case NORTHEAST_INT:
+				return Direction.NORTHEAST;
+			case EAST_INT:
+				return Direction.EAST;
+			case SOUTHEAST_INT:
+				return Direction.SOUTHEAST;
+			case SOUTH_INT:
+				return Direction.SOUTH;
+			case SOUTHWEST_INT:
+				return Direction.SOUTHWEST;
+			case WEST_INT:
+				return Direction.WEST;
+			case NORTHWEST_INT:
+				return Direction.NORTHWEST;
+			default:
+				return Direction.NORTH;
+		}
+	}
+
 	public String edgeTypeToString(int type) {
 		switch (type) {
 			case NORTH_INT:
@@ -445,6 +504,11 @@ public class Navigation {
 		previousLocs[noReturnLocLen - 1] = null;
 	}
 
+	/**
+	 * Updates the current location for nav
+	 * 
+	 * @param currLoc
+	 */
 	public void updateCurrLoc(MapLocation currLoc) {
 		this.currLoc = currLoc;
 	}
