@@ -3,108 +3,112 @@ package commsplayer;
 import battlecode.common.*;
 
 public class Robot {
-    public RobotController rc;
-
+    /**
+     * Constants
+     */
     public final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER, RobotType.MUCKRAKER, };
-
     public final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
             Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
 
-    public int turnCount = 0;
-    public int creatorID = 0;
-    public int xOffset = 0;
-    public int yOffset = 0;
-    public MapLocation creatorLoc;
+    /**
+     * 'Robot' Object Attributes
+     */
+    public RobotController rc;
+    public Navigation nav;
+    public Comms comms;
     public Team myTeam;
+    public Team opponentTeam;
+    public RobotType myType;
+    public int robotAge;
+    public int conviction;
+    public double cooldownTurns;
+    public int id;
+    public int influence;
+    public MapLocation currLoc;
+    public int roundNum;
+    public int message;
+    public int sensorRadSq;
+    public MapLocation myECLoc;
+    public int myECid;
+    public int xOffset;
+    public int yOffset;
 
-    public Robot(RobotController r) {
-        this.rc = r;
-        this.myTeam = rc.getTeam();
-    }
-
-    // Gets the id of the enlightenment center that spawned the robot in
-    // Hardcoded for the robot's first turn only
-    // add to
-    public void getSpawnECID() throws GameActionException {
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots(2, myTeam);
-        for (int i = 0; i < nearbyRobots.length; i++) {
-            if (nearbyRobots[i].team == myTeam && nearbyRobots[i].type == RobotType.ENLIGHTENMENT_CENTER) {
-                this.creatorID = nearbyRobots[i].ID;
-                this.creatorLoc = nearbyRobots[i].location;
-            }
-        }
-        //return 0; // TEMPORARY FIX BY MAX SO CODE COULD BE COMPILED
-    }
-
-    // This method is also meant for the first turn
-    public void calculateOffset(MapLocation currentLoc) throws GameActionException {
-        this.xOffset = creatorLoc.x - currentLoc.x;
-        this.yOffset = creatorLoc.y - currentLoc.y;
-    }
-
-    // Add the other input fields here
-    public void createMessage(int deltaX, int deltaY) throws GameActionException {
-        int packedMessage = 0;
-        // packedMessage = (packedMessage << 12) + 1;
-        packedMessage = (packedMessage << 6) + deltaX;
-        packedMessage = (packedMessage << 6) + deltaY;
-        System.out.println("Packed message: " + packedMessage);
-        // Binary Output
-        // System.out.println("Binary message: " + Integer.toString(packedMessage,2))
-        if (rc.canSetFlag(packedMessage)) {
-            rc.setFlag(packedMessage);
-        } else {
-            System.out.println("Flag failed to send :(");
-        }
-    }
-
-    public void interpretMessage(int id) throws GameActionException {
-        if (rc.canGetFlag(id)) {
-            int packedMessage = rc.getFlag(id);
-            int sentDeltaY = packedMessage & 0b111111;
-            int sendDeltaX = (packedMessage >> 6) & 0b111111;
-
-            System.out.println("Original Y = 57: " + Integer.toString(sentDeltaY));
-            System.out.println("Original X = 7: " + Integer.toString(sendDeltaX));
-        }
-    }
-
-    public void takeTurn() throws GameActionException {
-        turnCount += 1;
+    /**
+     * Constructor
+     * 
+     * @param rc
+     * @throws GameActionException
+     */
+    public Robot(RobotController rc) throws GameActionException {
+        this.rc = rc;
+        getECDetails();
+        myTeam = rc.getTeam();
+        opponentTeam = myTeam.opponent();
+        myType = rc.getType();
+        id = rc.getID();
+        robotAge = 0;
+        conviction = rc.getConviction();
+        cooldownTurns = rc.getCooldownTurns();
+        influence = rc.getInfluence();
+        currLoc = rc.getLocation();
+        roundNum = rc.getRoundNum();
+        sensorRadSq = getSensorRadiusSq();
+        this.comms = new Comms(rc, myTeam, opponentTeam, currLoc, myECLoc);
+        this.nav = new Navigation(rc, currLoc, myECLoc);
     }
 
     /**
-     * Returns a random Direction.
-     *
-     * @return a random Direction
+     * 'Robot' Object Methods
      */
-    Direction randomDirection() {
+    public void takeTurn() throws GameActionException {
+        robotAge += 1;
+        conviction = rc.getConviction();
+        cooldownTurns = rc.getCooldownTurns();
+        influence = rc.getInfluence();
+        currLoc = rc.getLocation();
+        roundNum = rc.getRoundNum();
+        this.xOffset = myECLoc.x - currLoc.x;
+        this.yOffset = myECLoc.y - currLoc.y;
+        // message = comms.checkmessage()
+        comms.updateCurrLoc(currLoc);
+        nav.updateCurrLoc(currLoc);
+    }
+
+    public void getECDetails() throws GameActionException {
+        RobotInfo[] robots = rc.senseNearbyRobots(2, myTeam);
+        for (int i = 0; i < robots.length; i++) {
+            RobotInfo ri = robots[i];
+            if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
+                myECLoc = ri.getLocation();
+                myECid = ri.getID();
+            }
+        }
+    }
+
+    public int getSensorRadiusSq() {
+        switch (rc.getType()) {
+            case ENLIGHTENMENT_CENTER:
+                return 40;
+            case POLITICIAN:
+                return 25;
+            case SLANDERER:
+                return 20;
+            case MUCKRAKER:
+                return 30;
+            default:
+                return -1;
+        }
+    }
+
+    public boolean coinFlip() {
+        return Math.random() > 0.5;
+    }
+
+    public Direction randomDirection() {
         return directions[(int) (Math.random() * directions.length)];
     }
 
-    /**
-     * Returns a random spawnable RobotType
-     *
-     * @return a random RobotType
-     */
-    RobotType randomSpawnableRobotType() {
+    public RobotType randomSpawnableRobotType() {
         return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
-    }
-
-    /**
-     * Attempts to move in a given direction.
-     *
-     * @param dir The intended direction of movement
-     * @return true if a move was performed
-     * @throws GameActionException
-     */
-    boolean tryMove(Direction dir) throws GameActionException {
-        System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " "
-                + rc.canMove(dir));
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-            return true;
-        } else
-            return false;
     }
 }

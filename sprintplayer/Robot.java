@@ -30,6 +30,8 @@ public class Robot {
 	public int sensorRadSq;
 	public MapLocation myECLoc;
 	public int myECid;
+	public int xOffset;
+	public int yOffset;
 
 	/**
 	 * Constructor
@@ -51,8 +53,8 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		sensorRadSq = getSensorRadiusSq();
+		this.comms = new Comms(rc, myTeam, opponentTeam, currLoc, myECLoc);
 		this.nav = new Navigation(rc, currLoc, myECLoc);
-		this.comms = new Comms(rc);
 	}
 
 	/**
@@ -65,7 +67,10 @@ public class Robot {
 		influence = rc.getInfluence();
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
+		this.xOffset = myECLoc.x - currLoc.x;
+		this.yOffset = myECLoc.y - currLoc.y;
 		// message = comms.checkmessage()
+		comms.updateCurrLoc(currLoc);
 		nav.updateCurrLoc(currLoc);
 	}
 

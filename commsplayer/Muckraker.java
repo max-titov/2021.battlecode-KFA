@@ -1,13 +1,14 @@
 package commsplayer;
+
 import battlecode.common.*;
 
 public class Muckraker extends Robot {
 
-    public Muckraker(RobotController r){
-        super(r);
+    public Muckraker(RobotController rc) throws GameActionException {
+        super(rc);
     }
 
-    public void takeTurn() throws GameActionException{
+    public void takeTurn() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
         int actionRadius = rc.getType().actionRadiusSquared;
         for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {
@@ -20,7 +21,7 @@ public class Muckraker extends Robot {
                 }
             }
         }
-        if (tryMove(randomDirection()))
+        if (nav.tryMove(randomDirection()))
             System.out.println("I moved!");
     }
 
