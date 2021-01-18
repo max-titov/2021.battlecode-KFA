@@ -145,7 +145,7 @@ public class Slanderer extends Robot {
 		for (int i = 0; i < 8; i++) {
 			boolean foundSpot = true;
 			testLoc = myECLoc.add(dir);// copies currLoc idk if there is a better way to do it
-			while (myECLoc.isWithinDistanceSquared(testLoc, 50)) {
+			while (myECLoc.isWithinDistanceSquared(testLoc, 35)) {
 				testLoc = testLoc.add(dir);
 				if (rc.canSenseLocation(testLoc) && !rc.onTheMap(testLoc)) {
 					foundSpot = false;
