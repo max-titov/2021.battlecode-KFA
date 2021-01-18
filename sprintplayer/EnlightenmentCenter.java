@@ -78,6 +78,12 @@ public class EnlightenmentCenter extends Robot {
 			rc.buildRobot(toBuild, directionToBuild, influenceToMake);
 			dirIndex++;
 			spawnIndex++;
+			if (spawnIndex == 3) {
+				spawnIndex = 0;
+			}
+			if (dirIndex == 8) {
+				dirIndex = 0;
+			}
 		}
 		myPrevVotes = myVotes;
 	}
