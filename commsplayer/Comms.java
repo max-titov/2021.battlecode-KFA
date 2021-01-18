@@ -1,8 +1,9 @@
 package commsplayer;
+
 import battlecode.common.*;
 
 public class Comms {
-    static RobotController rc;
+    public RobotController rc;
     final int edgeMessage = 0;
     final int foundECMessage = 1;
 
@@ -78,4 +79,7 @@ public class Comms {
 
     }
 
+	public Comms(RobotController rc) {
+		this.rc = rc;
+	}
 }

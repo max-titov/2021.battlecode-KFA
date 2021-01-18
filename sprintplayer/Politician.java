@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Politician extends Robot {
 
-	public Politician(RobotController rc) {
+	public Politician(RobotController rc) throws GameActionException {
 		super(rc);
 	}
 
@@ -19,7 +19,7 @@ public class Politician extends Robot {
 			System.out.println("empowered");
 			return;
 		}
-		if (nav.tryMove(randomDirection()))
+		if (nav.tryMove(nav.randomDirection()))
 			System.out.println("I moved!");
 	}
 
