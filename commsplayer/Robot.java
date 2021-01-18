@@ -24,7 +24,8 @@ public class Robot {
 
     // Gets the id of the enlightenment center that spawned the robot in
     // Hardcoded for the robot's first turn only
-    public int getSpawnECID() throws GameActionException {
+    // add to
+    public void getSpawnECID() throws GameActionException {
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots(2, myTeam);
         for (int i = 0; i < nearbyRobots.length; i++) {
             if (nearbyRobots[i].team == myTeam && nearbyRobots[i].type == RobotType.ENLIGHTENMENT_CENTER) {
@@ -32,7 +33,7 @@ public class Robot {
                 this.creatorLoc = nearbyRobots[i].location;
             }
         }
-        return 0; // TEMPORARY FIX BY MAX SO CODE COULD BE COMPILED
+        //return 0; // TEMPORARY FIX BY MAX SO CODE COULD BE COMPILED
     }
 
     // This method is also meant for the first turn
