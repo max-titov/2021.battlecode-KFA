@@ -3,9 +3,11 @@ package commsplayer;
 import battlecode.common.*;
 
 public class Politician extends Robot {
+	Comms comm;
 
 	public Politician(RobotController rc) throws GameActionException {
 		super(rc);
+		comm = new Comms(rc, this.myTeam, this.opponentTeam, this.currLoc, this.myECLoc);
 	}
 
 	public void takeTurn() throws GameActionException {
@@ -18,6 +20,8 @@ public class Politician extends Robot {
 		 * (tryMove(randomDirection())) System.out.println("I moved!");
 		 */
 		System.out.println("Attempting to set a flag");
+		comm.createFoundECMessage(this.myTeam, 2, 16, 16);
+
 	}
 
 }
