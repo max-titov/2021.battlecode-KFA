@@ -43,9 +43,9 @@ public class Muckraker extends Robot {
 		super(rc);
 		robotsInExpose = rc.senseNearbyRobots(12, opponentTeam);
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
+		muckrakerType = EXPLORER_MUCKRAKER;
+		target = getTargetRelativeEC();
 		if (roundNum < ROUND_TO_START_HARASS) {
-			muckrakerType = EXPLORER_MUCKRAKER;
-			target = getTargetRelativeEC();
 			if (coinFlip()) {
 				explorerType = EDGE_EXPLORER;
 			} else {
@@ -162,62 +162,42 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public boolean exposeOnSight() throws GameActionException {
-		if (robotsInExpose.length > 0) {
-			MapLocation exposeLoc = findMaxConv(false);
-			if (exposeLoc == null) {
-				return false;
+		int indexOfMaxConv = -1;
+		boolean foundSlanderer = false;
+		for (int i = 0; i < robotsInExpose.length; i++) {
+			RobotInfo ri = robotsInExpose[i];
+			if (ri.type.equals(RobotType.SLANDERER)) {
+				foundSlanderer = true;
+				if (indexOfMaxConv == -1) {
+					indexOfMaxConv = i;
+				} else if (ri.conviction > robotsInExpose[indexOfMaxConv].conviction) {
+					indexOfMaxConv = i;
+				}
 			}
-			if (rc.canExpose(exposeLoc)) {
-				rc.expose(exposeLoc);
+		}
+		if (foundSlanderer) {
+			if (rc.canExpose(robotsInExpose[indexOfMaxConv].location)) {
+				rc.expose(robotsInExpose[indexOfMaxConv].location);
+				return true;
 			}
-			// comms.sendMessage("exposed a slander of influence X")
-			return false;
-		} else if (robotsInSense.length > 0) {
-			MapLocation robotLoc = findMaxConv(true);
-			if (robotLoc == null) {
-				return false;
+		}
+		for (int i = 0; i < robotsInSense.length; i++) {
+			RobotInfo ri = robotsInSense[i];
+			if (ri.type.equals(RobotType.SLANDERER)) {
+				foundSlanderer = true;
+				if (indexOfMaxConv == -1) {
+					indexOfMaxConv = i;
+				} else if (ri.conviction > robotsInSense[indexOfMaxConv].conviction) {
+					indexOfMaxConv = i;
+				}
 			}
-			nav.tryMoveToTarget(robotLoc);
+		}
+		if (foundSlanderer) {
+			nav.tryMoveToTarget(robotsInSense[indexOfMaxConv].location);
 			return true;
 		}
 		return false;
-	}
 
-	/**
-	 * Finds the robot with the most conviction in either sensor radius (if
-	 * checkMaxRadius is true) or expose radius (if checkMaxRadius is false)
-	 * 
-	 * @param checkMaxRadius
-	 * @return
-	 */
-	public MapLocation findMaxConv(boolean checkMaxRadius) {
-		if (checkMaxRadius) {
-			int indexOfMaxConv = 0;
-			boolean foundSlanderer = false;
-			for (int i = 0; i < robotsInSense.length; i++) {
-				RobotInfo ri = robotsInSense[i];
-				if (ri.getType().equals(RobotType.SLANDERER)) {
-					foundSlanderer = true;
-					if (ri.getConviction() > robotsInSense[indexOfMaxConv].getConviction()) {
-						indexOfMaxConv = i;
-					}
-				}
-			}
-			return foundSlanderer ? robotsInSense[indexOfMaxConv].getLocation() : null;
-		} else {
-			int indexOfMaxConv = 0;
-			boolean foundSlanderer = false;
-			for (int i = 0; i < robotsInExpose.length; i++) {
-				RobotInfo ri = robotsInExpose[i];
-				if (ri.getType().equals(RobotType.SLANDERER)) {
-					foundSlanderer = true;
-					if (ri.getConviction() > robotsInExpose[indexOfMaxConv].getConviction()) {
-						indexOfMaxConv = i;
-					}
-				}
-			}
-			return foundSlanderer ? robotsInSense[indexOfMaxConv].getLocation() : null;
-		}
 	}
 
 	/**
@@ -227,14 +207,11 @@ public class Muckraker extends Robot {
 	public void findEnemyEC() {
 		for (int i = 0; i < robotsInSense.length; i++) {
 			RobotInfo ri = robotsInSense[i];
-			if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				// System.out.println("Found enemy EC");
+			if (ri.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+				System.out.println("Found enemy EC");
 				enemyEC = ri.getLocation();
 				return;
 			}
-		}
-		if (muckrakerType == HARASS_MUCKRAKER) {
-			// check comms for enemyEC
 		}
 	}
 

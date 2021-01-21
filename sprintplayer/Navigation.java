@@ -77,7 +77,7 @@ public class Navigation {
 		if (!dir.equals(currentExplorationDir)) {
 			movesInCurrentDir = 0;
 			currentExplorationDir = dir;
-		} else if (movesInCurrentDir >= movesInCurrentDirBeforeSwitch) {
+		} else if (movesInCurrentDir >= movesInCurrentDirBeforeSwitch || !rc.onTheMap(currLoc.add(dir))) {
 			movesInCurrentDir = 0;
 			currentExplorationDir = randomDirection();
 		}

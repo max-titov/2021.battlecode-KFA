@@ -76,6 +76,7 @@ public class EnlightenmentCenter extends Robot {
 		}
 		if (rc.canBuildRobot(toBuild, directionToBuild, influenceToMake)) {
 			rc.buildRobot(toBuild, directionToBuild, influenceToMake);
+			System.out.println("Built robot");
 			dirIndex++;
 			spawnIndex++;
 			if (spawnIndex == 3) {
@@ -88,14 +89,14 @@ public class EnlightenmentCenter extends Robot {
 		myPrevVotes = myVotes;
 	}
 
-	// public void checkFlags() {
-	// for (int i = 0; i < numOfRobotsCreated; i++) {
-	// int flagMessage = rc.getFlag(robotIDs[i]);
-	// switch (flagMessage) {
-	// case
-	// }
-	// }
-	// }
+	public void checkFlags() {
+	for (int i = 0; i < numOfRobotsCreated; i++) {
+	int flagMessage = rc.getFlag(robotIDs[i]);
+	switch (flagMessage) {
+	case
+	}
+	}
+	}
 
 	public int getIndexOfID(int id) {
 		for (int i = 0; i < numOfRobotsCreated; i++) {
