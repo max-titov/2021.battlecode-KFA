@@ -13,7 +13,7 @@ public class Politician extends Robot {
 
 	public static final int SLANDERER_FLAG = 934245;
 
-	public static final int HERDER_POLITCIAN_INFLUENCE = 18;
+	public static final int HERDER_POLITICIAN_INFLUENCE = 18;
 
 	/**
 	 * Politician's attributes
@@ -34,9 +34,9 @@ public class Politician extends Robot {
 			clockwise = false;
 		}
 		readECMessage();
-		if (conviction%5==1) {
+		if (conviction % 5 == 1) {
 			politicianType = CAPTURER_POLITICIAN;
-		} else if (conviction%HERDER_POLITCIAN_INFLUENCE==0){ 
+		} else if (conviction%HERDER_POLITICIAN_INFLUENCE==0){ 
 			politicianType = HERDER_POLITICIAN;
 		} else {
 			politicianType = WANDERER_POLITICIAN;
@@ -69,7 +69,7 @@ public class Politician extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		rc.setFlag(0); //TODO: this is a temp fix probably add something to robot
+		rc.setFlag(0); // TODO: this is a temp fix probably add something to robot
 		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
 		neutralBots = rc.senseNearbyRobots(sensorRadSq, Team.NEUTRAL);
@@ -89,7 +89,7 @@ public class Politician extends Robot {
 	}
 
 	public void herderPolitician() throws GameActionException {
-		//shouldEmpower();
+		// shouldEmpower();
 		targetEnemyMucks();
 
 		MapLocation avgLocNearbySlanderers = avgLocNearbySlanderers();
@@ -127,19 +127,19 @@ public class Politician extends Robot {
 				break;
 			}
 		}
-		if(target!=null){
+		if (target != null) {
 			targetUnit(target);
 		}
 	}
 
 	public void capturerPolitician() throws GameActionException {
-		if(mainTargetLoc==null){
-			politicianType=WANDERER_POLITICIAN;
+		if (mainTargetLoc == null) {
+			politicianType = WANDERER_POLITICIAN;
 			nav.simpleExploration();
 			return;
 		}
 
-		if(rc.canSenseLocation(mainTargetLoc)){
+		if (rc.canSenseLocation(mainTargetLoc)) {
 			RobotInfo mainTargetInfo = rc.senseRobotAtLocation(mainTargetLoc);
 			//if the target is no longer an enemy or neutral ec
 			if(mainTargetInfo.team.equals(myTeam) && mainTargetInfo.type.equals(RobotType.ENLIGHTENMENT_CENTER)){
@@ -152,7 +152,7 @@ public class Politician extends Robot {
 		}
 
 		boolean foundEC = lookForECsToCapture();
-		
+
 		if (!foundEC) {
 			nav.tryMoveToTarget(mainTargetLoc);
 		}
@@ -251,10 +251,10 @@ public class Politician extends Robot {
 	// }
 
 	public void targetUnit(RobotInfo targetRI) throws GameActionException {
-		if(conviction<=10){
+		if (conviction <= 10) {
 			return;
 		}
-		int empowerPower = (int) ((conviction-10) * rc.getEmpowerFactor(myTeam, 0));
+		int empowerPower = (int) ((conviction - 10) * rc.getEmpowerFactor(myTeam, 0));
 		MapLocation targetLoc = targetRI.location;
 		int distToTarget = currLoc.distanceSquaredTo(targetLoc);
 		int targetConviction = targetRI.conviction;
@@ -270,7 +270,7 @@ public class Politician extends Robot {
 
 		int avgConvictionToDistribute = robotsInEmpowerTargetRadLen / empowerPower;
 
-		if (robotsInEmpowerTargetRadLen==1 || avgConvictionToDistribute > targetConviction || distToTarget <= 2) {
+		if (robotsInEmpowerTargetRadLen == 1 || avgConvictionToDistribute > targetConviction || distToTarget <= 2) {
 			if (rc.canEmpower(distToTarget)) {
 				rc.empower(distToTarget);
 				return;

@@ -60,7 +60,7 @@ public class Comms {
 		if (rc.canGetFlag(robotID)) {
 			return rc.getFlag(robotID);
 		} else {
-			System.out.println("Failed to get flag");
+			// System.out.println("Failed to get flag");
 			return -1;
 		}
 	}
@@ -127,6 +127,42 @@ public class Comms {
 		rawMessage = rawMessage >> 7;
 		info[1] = rawMessage;
 		return info;
+	}
+
+	/**
+	 * Raise flag if EC is found giving information about it
+	 * 
+	 * @param ri
+	 * @throws GameActionException
+	 */
+	public void sendFoundECMessage(int x, int y, Team team, int conviction) throws GameActionException {
+		int xOff = x - myECLoc.x;
+		int yOff = y - myECLoc.y;
+
+		int intTeam;
+		// Set value for the EC's team
+		if (team.equals(myTeam)) {
+			intTeam = 0;
+		} else if (team.equals(opponentTeam)) {
+			intTeam = 1;
+		} else {
+			intTeam = 2;
+		}
+
+		// Value for conviction
+		int convIntRange = convToConvIntRange(conviction);
+
+		int packedMessage = 0;
+		packedMessage += intTeam;
+		packedMessage = packedMessage << 4;
+		packedMessage += convIntRange;
+		packedMessage = packedMessage << 7;
+		packedMessage += xOff + 64;
+		packedMessage = packedMessage << 7;
+		packedMessage += yOff + 64;
+		packedMessage = packedMessage << 4;
+		packedMessage += FOUND_EC;
+		sendMessage(packedMessage);
 	}
 
 	/**

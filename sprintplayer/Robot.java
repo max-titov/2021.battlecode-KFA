@@ -42,7 +42,6 @@ public class Robot {
 	 */
 	public Robot(RobotController rc) throws GameActionException {
 		this.rc = rc;
-		getECDetails();
 		myTeam = rc.getTeam();
 		opponentTeam = myTeam.opponent();
 		myType = rc.getType();
@@ -55,6 +54,7 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		sensorRadSq = getSensorRadiusSq();
+		getECDetails();
 		this.comms = new Comms(rc, myTeam, opponentTeam, currLoc, myECLoc);
 		this.nav = new Navigation(rc, currLoc, myECLoc);
 	}
@@ -78,12 +78,17 @@ public class Robot {
 	}
 
 	public void getECDetails() throws GameActionException {
+		if (myType.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+			myECLoc = currLoc;
+			myECid = id;
+			return;
+		}
 		RobotInfo[] robots = rc.senseNearbyRobots(2, myTeam);
 		for (int i = 0; i < robots.length; i++) {
 			RobotInfo ri = robots[i];
 			if (ri.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				myECLoc = ri.getLocation();
-				myECid = ri.getID();
+				myECLoc = ri.location;
+				myECid = ri.ID;
 			}
 		}
 	}
@@ -113,6 +118,10 @@ public class Robot {
 
 	public Direction randomDirection() {
 		return directions[(int) (Math.random() * directions.length)];
+	}
+
+	public Direction randomDirection(Direction[] possibleDirs) {
+		return possibleDirs[(int) (Math.random() * possibleDirs.length)];
 	}
 
 	public RobotType randomSpawnableRobotType() {

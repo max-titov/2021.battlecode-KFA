@@ -36,12 +36,11 @@ public class EnlightenmentCenter extends Robot {
 	public int regularBuildCycleIndex;
 	public BuildUnit[] priorityBuildQueue;
 	// Directions
-	public Direction[] muckrakerDirs;
+	public Direction[] availableDirs;
 	public int muckrakerDirIndex;
+	public int politicianDirIndex;
 	public Direction[] slandererDirs;
 	public int slandererDirIndex;
-	public Direction[] politicianDirs;
-	public int politicianDirIndex;
 	// Common BuildUnits
 	BuildUnit S130;
 	BuildUnit M1;
@@ -68,19 +67,48 @@ public class EnlightenmentCenter extends Robot {
 				P18, S41, S41, P18, S41 };
 		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
-		muckrakerDirs = checkAdjTiles();
-		politicianDirs = checkAdjTiles();
+		availableDirs = checkAdjTiles();
 		slandererDirs = getSlandererDirs();
 	}
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		checkFlags();
-
+		if (initialBuildCycleIndex < initialBuildCycle.length) {
+			// System.out.println("\nIn Initial Build Cycle");
+			// for (int i = 0; i < initialBuildCycle.length; i++) {
+			// if (i == initialBuildCycleIndex) {
+			// System.out.println("*" + initialBuildCycle[i] + "*");
+			// continue;
+			// }
+			// System.out.println(initialBuildCycle[i]);
+			// }
+			buildCycleUnit();
+		} else if (priorityBuildQueue[0] != null) {
+			// System.out.println("\nIn Priority Build Queue");
+			// for (int i = 0; i < priorityBuildQueue.length; i++) {
+			// System.out.println(priorityBuildQueue[i]);
+			// }
+			buildPriorityQueueUnit();
+		} else {
+			// System.out.println("\nIn Regular Build Cycle");
+			// for (int i = 0; i < regularBuildCycle.length; i++) {
+			// if (i == regularBuildCycleIndex) {
+			// System.out.println("*" + regularBuildCycle[i] + "*");
+			// continue;
+			// }
+			// System.out.println(regularBuildCycle[i]);
+			// }
+			buildCycleUnit();
+		}
 	}
 
 	public Direction[] getSlandererDirs() throws GameActionException {
 		int[] edges = nav.lookForEdges();
+		if (edges == null) {
+			Direction randDir = randomDirection(availableDirs);
+			return new Direction[] { randDir.rotateLeft(), randDir, randDir.rotateRight() };
+		}
 		int edgeType = edges[0];
 		edgeType += 8;
 		int centerDir = 0;
@@ -105,12 +133,9 @@ public class EnlightenmentCenter extends Robot {
 			}
 			centerDir = (xEdge + yEdge) / 2;
 		}
-
-		int topDir = centerDir - 1;
-		int lowDir = centerDir + 1;
-		Direction[] retDirections = new Direction[] { nav.edgeTypeToDir(topDir % directions.length),
-				nav.edgeTypeToDir(centerDir % directions.length), nav.edgeTypeToDir(lowDir % directions.length) };
-		return retDirections;
+		return new Direction[] { nav.edgeTypeToDir((centerDir - 1) % directions.length),
+				nav.edgeTypeToDir(centerDir % directions.length),
+				nav.edgeTypeToDir((centerDir + 1) % directions.length) };
 	}
 
 	public Direction[] checkAdjTiles() throws GameActionException {
@@ -161,7 +186,8 @@ public class EnlightenmentCenter extends Robot {
 							if (!checkInArray(neutralECLocs, toAdd)) {
 								neutralECLocs[neutralECsIndex++] = toAdd;
 								buildQueueAdd(priorityBuildQueue, new BuildUnit(RobotType.POLITICIAN,
-										comms.convIntRangeToMaxConv(info[2]) + 11, toAdd));
+										comms.convIntRangeToMaxConv(info[2]) + 11, toAdd, Team.NEUTRAL));
+								// System.out.println("Added to Priority Build Queue");
 							}
 							break;
 					}
@@ -258,27 +284,49 @@ public class EnlightenmentCenter extends Robot {
 	public void buildPriorityQueueUnit() throws GameActionException {
 		BuildUnit bu = priorityBuildQueue[0];
 		Direction dirToBuild = dirToBuild(bu);
-		if (rc.canBuildRobot(bu.type, dirToBuild, bu.influence)) {
-			rc.buildRobot(bu.type, dirToBuild, bu.influence);
+		if (rc.canBuildRobot(bu.type, dirToBuild, bu.conviction)) {
+			rc.buildRobot(bu.type, dirToBuild, bu.conviction);
+			addID(dirToBuild);
+			if (bu.hasTargetEC()) {
+				comms.sendFoundECMessage(bu.targetECLoc.x, bu.targetECLoc.y, bu.targetECTeam, bu.conviction);
+			}
 			buildQueueRemove(priorityBuildQueue);
-			return;
-		}
-		dirToBuild = dirToBuild(M1);
-		if (rc.canBuildRobot(RobotType.MUCKRAKER, dirToBuild, 1)) {
-			rc.buildRobot(RobotType.MUCKRAKER, dirToBuild, 1);
 		}
 	}
 
 	public void buildCycleUnit() throws GameActionException {
 		BuildUnit bu;
+		int multiplier = 1;
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
-			bu = initialBuildCycle[initialBuildCycleIndex++];
+			bu = initialBuildCycle[initialBuildCycleIndex];
 		} else {
-			bu = regularBuildCycle[regularBuildCycleIndex++];
+			bu = regularBuildCycle[regularBuildCycleIndex];
+			if (bu.type.equals(RobotType.SLANDERER) || bu.type.equals(RobotType.POLITICIAN)) {
+				multiplier = influence / 100;
+			}
+			if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.05)) {
+				multiplier = 100;
+				System.out.println("SPAWNED BIG BOI");
+			}
 		}
 		Direction dirToBuild = dirToBuild(bu);
-		if (rc.canBuildRobot(bu.type, dirToBuild, bu.influence)) {
-			rc.buildRobot(bu.type, dirToBuild, bu.influence);
+		if (rc.canBuildRobot(bu.type, dirToBuild, bu.conviction * multiplier)) {
+			rc.buildRobot(bu.type, dirToBuild, bu.conviction * multiplier);
+			addID(dirToBuild);
+			if (initialBuildCycleIndex < initialBuildCycle.length) {
+				initialBuildCycleIndex++;
+			} else {
+				regularBuildCycleIndex++;
+				if (regularBuildCycleIndex == regularBuildCycle.length) {
+					regularBuildCycleIndex = 0;
+				}
+			}
+		} else if (initialBuildCycleIndex < initialBuildCycle.length) {
+			dirToBuild = dirToBuild(M1);
+			if (rc.canBuildRobot(RobotType.MUCKRAKER, dirToBuild, 1)) {
+				rc.buildRobot(RobotType.MUCKRAKER, dirToBuild, 1);
+				addID(dirToBuild);
+			}
 		}
 	}
 
@@ -294,41 +342,46 @@ public class EnlightenmentCenter extends Robot {
 			if (slandererDirIndex == slandererDirs.length) {
 				slandererDirIndex = 0;
 			}
-			while (rc.isLocationOccupied(currLoc.add(dirToBuild))) {
-				dirToBuild = slandererDirs[slandererDirIndex++];
-				if (slandererDirIndex == slandererDirs.length) {
-					slandererDirIndex = 0;
-				}
+			while (!rc.onTheMap(currLoc.add(dirToBuild)) || rc.isLocationOccupied(currLoc.add(dirToBuild))) {
+				dirToBuild = dirToBuild.rotateRight();
 			}
-		} else if (bu.type.equals(RobotType.POLITICIAN) && bu.influence == Politician.HERDER_POLITCIAN_INFLUENCE) {
+		} else if (bu.type.equals(RobotType.POLITICIAN)
+				&& (bu.conviction % Politician.HERDER_POLITICIAN_INFLUENCE) == 0) {
 			dirToBuild = slandererDirs[(slandererDirIndex - 1 + slandererDirs.length) % slandererDirs.length];
 			while (!rc.onTheMap(currLoc.add(dirToBuild)) || rc.isLocationOccupied(currLoc.add(dirToBuild))) {
 				dirToBuild = dirToBuild.rotateRight();
 			}
 		} else if (bu.type.equals(RobotType.POLITICIAN)) {
-			dirToBuild = politicianDirs[politicianDirIndex++];
-			if (politicianDirIndex == politicianDirs.length) {
+			dirToBuild = availableDirs[politicianDirIndex++];
+			if (politicianDirIndex == availableDirs.length) {
 				politicianDirIndex = 0;
 			}
 			while (rc.isLocationOccupied(currLoc.add(dirToBuild))) {
-				dirToBuild = politicianDirs[politicianDirIndex++];
-				if (politicianDirIndex == politicianDirs.length) {
+				dirToBuild = availableDirs[politicianDirIndex++];
+				if (politicianDirIndex == availableDirs.length) {
 					politicianDirIndex = 0;
 				}
 			}
 		} else {
-			dirToBuild = muckrakerDirs[muckrakerDirIndex++];
-			if (muckrakerDirIndex == muckrakerDirs.length) {
+			dirToBuild = availableDirs[muckrakerDirIndex++];
+			if (muckrakerDirIndex == availableDirs.length) {
 				muckrakerDirIndex = 0;
 			}
 			while (rc.isLocationOccupied(currLoc.add(dirToBuild))) {
-				dirToBuild = muckrakerDirs[muckrakerDirIndex++];
-				if (muckrakerDirIndex == muckrakerDirs.length) {
+				dirToBuild = availableDirs[muckrakerDirIndex++];
+				if (muckrakerDirIndex == availableDirs.length) {
 					muckrakerDirIndex = 0;
 				}
 			}
 		}
 		return dirToBuild;
+	}
+
+	public void addID(Direction dirToCheck) throws GameActionException {
+		if (numOfRobotsCreated == NUM_OF_UNITS_TO_TRACK) {
+			return;
+		}
+		robotIDs[numOfRobotsCreated++] = rc.senseRobotAtLocation(currLoc.add(dirToCheck)).ID;
 	}
 
 	public boolean checkInArray(MapLocation[] arr, MapLocation toCheck) {

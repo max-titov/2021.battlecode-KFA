@@ -7,23 +7,29 @@ public class BuildUnit {
 	 * Attributes
 	 */
 	public RobotType type;
-	public int influence;
+	public int conviction;
 	// Only for capture politicians and attack politicians
 	public MapLocation targetECLoc;
+	public Team targetECTeam;
 
-	public BuildUnit(RobotType type, int influence, MapLocation targetECLoc) {
+	public BuildUnit(RobotType type, int conviction, MapLocation targetECLoc, Team targetECTeam) {
 		this.type = type;
-		this.influence = influence;
+		this.conviction = conviction;
 		this.targetECLoc = targetECLoc;
+		this.targetECTeam = targetECTeam;
 	}
 
-	public BuildUnit(RobotType type, int influence) {
+	public BuildUnit(RobotType type, int conviction) {
 		this.type = type;
-		this.influence = influence;
+		this.conviction = conviction;
 	}
 
 	public boolean hasTargetEC() {
 		return targetECLoc != null;
+	}
+
+	public String toString() {
+		return type.toString() + " " + conviction + " has target EC: " + hasTargetEC();
 	}
 
 }
