@@ -68,7 +68,11 @@ public class EnlightenmentCenter extends Robot {
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		checkFlags();
-
+		if (priorityBuildQueue[0] != null) {
+			buildPriorityQueueUnit();
+		} else {
+			buildCycleUnit();
+		}
 	}
 
 	public void checkFlags() throws GameActionException {
@@ -201,11 +205,6 @@ public class EnlightenmentCenter extends Robot {
 		if (rc.canBuildRobot(bu.type, dirToBuild, bu.influence)) {
 			rc.buildRobot(bu.type, dirToBuild, bu.influence);
 			buildQueueRemove(priorityBuildQueue);
-			return;
-		}
-		dirToBuild = dirToBuild(M1);
-		if (rc.canBuildRobot(RobotType.MUCKRAKER, dirToBuild, 1)) {
-			rc.buildRobot(RobotType.MUCKRAKER, dirToBuild, 1);
 		}
 	}
 
@@ -215,10 +214,18 @@ public class EnlightenmentCenter extends Robot {
 			bu = initialBuildCycle[initialBuildCycleIndex++];
 		} else {
 			bu = regularBuildCycle[regularBuildCycleIndex++];
+			if (regularBuildCycleIndex == regularBuildCycle.length) {
+				regularBuildCycleIndex = 0;
+			}
 		}
 		Direction dirToBuild = dirToBuild(bu);
 		if (rc.canBuildRobot(bu.type, dirToBuild, bu.influence)) {
 			rc.buildRobot(bu.type, dirToBuild, bu.influence);
+		} else if (initialBuildCycleIndex < initialBuildCycle.length) {
+			dirToBuild = dirToBuild(M1);
+			if (rc.canBuildRobot(RobotType.MUCKRAKER, dirToBuild, 1)) {
+				rc.buildRobot(RobotType.MUCKRAKER, dirToBuild, 1);
+			}
 		}
 	}
 
