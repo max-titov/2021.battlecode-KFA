@@ -230,9 +230,9 @@ public class Comms {
 	}
 
 	public int convToConvIntRange(int conv) {
-		if (conv < 50) {
+		if (conv <= 50) {
 			return 0;
-		} else if (conv < 75) {
+		} else if (conv <= 75) {
 			return 1;
 		} else if (conv <= 100) {
 			return 2;
