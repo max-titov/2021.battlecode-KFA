@@ -12,6 +12,7 @@ public class EnlightenmentCenter extends Robot {
 	/**
 	 * Attributes
 	 */
+	public boolean firstSlandererCreated;
 	public int[] robotIDs;
 	public int numOfRobotsCreated;
 	// Map
@@ -21,6 +22,7 @@ public class EnlightenmentCenter extends Robot {
 	public int westX;
 	public int mapWidth;
 	public int mapHeight;
+	public Direction[] adjDirections;
 	// EC Locations
 	public MapLocation[] enemyECLocs;
 	public int enemyECsIndex;
@@ -28,12 +30,8 @@ public class EnlightenmentCenter extends Robot {
 	public int fellowECsIndex;
 	public MapLocation[] neutralECLocs;
 	public int neutralECsIndex;
-	// Common BuildUnits
-	BuildUnit S130;
-	BuildUnit M1;
-	BuildUnit P18;
-	BuildUnit S41;
 	// Build Queues
+	public boolean initialBuildCycleDone;
 	public BuildUnit[] initialBuildCycle;
 	public int initialBuildCycleIndex;
 	public BuildUnit[] regularBuildCycle;
@@ -46,6 +44,9 @@ public class EnlightenmentCenter extends Robot {
 	public int slandererDirIndex;
 	public Direction[] politicianDirs;
 	public int politicianDirIndex;
+	// Common BuildUnits
+	BuildUnit S130;
+	BuildUnit M1;
 
 	/**
 	 * Constructor
@@ -59,48 +60,74 @@ public class EnlightenmentCenter extends Robot {
 		enemyECLocs = new MapLocation[12];
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
-		S130 = new BuildUnit(RobotType.SLANDERER, 130);
-		M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
-		P18 = new BuildUnit(RobotType.POLITICIAN, 18);
-		S41 = new BuildUnit(RobotType.SLANDERER, 41);
-		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41,
-				P18, S41, S41, P18, S41 };
-		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1 };
+		BuildUnit S130 = new BuildUnit(RobotType.SLANDERER, 130);
+		BuildUnit M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
+		BuildUnit P18 = new BuildUnit(RobotType.POLITICIAN, 18);
+		BuildUnit S41 = new BuiltUnit(RobotType.SLANDERER, 41);
+		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41};
+		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1};
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
-		muckrakerDirs = checkAdjTiles();
-		politicianDirs = checkAdjTiles();
-		// determine slandererDirs here
-		findNearbyECs();
+		slandererDirs = getSlandererDirs();
+		adjDirections = checkAdjTiles();
 	}
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		checkFlags();
-		if (initialBuildCycleIndex < initialBuildCycle.length) {
-			buildCycleUnit();
-		} else if (priorityBuildQueue[0] != null) {
-			buildPriorityQueueUnit();
-		} else {
-			buildCycleUnit();
+
+	}
+
+	public Direction[] getSlanderDirs() throws GameActionException {
+		int[] edges = nav.lookForEdges();
+		int edgeType = edges[0];
+		edgeType += 8;
+		int centerDir = 0;
+		MapLocation edgeLoc = new MapLocation(edges[1], edges[2]);
+		//Cardinal Directions
+		if(edgeType % 2 == 0){
+			if(currLoc.distanceSquaredTo(edgeLoc) >= 16){
+				centerDir = edgeType;
+			} else {
+				centerDir = (edgeType + 2) % directions.length;
+			}
 		}
+		//Corners 
+		else {
+			int xEdge = edgeType + 1;
+			int yEdge = edgeType - 1;
+			if(Math.abs(currLoc.x - edgeLoc.x) < 4){
+				xEdge += 4;
+			}
+			if(Math.abs(currLoc.y - edgeLoc.y) < 4){
+				yEdge += 4;
+			}
+			centerDir = (xEdge + yEdge)/2;
+		}
+
+		int topDir = centerDir - 1;
+		int lowDIr = centerDir + 1;
+		Direction[] retDirections = new Direction[] {nav.edgeTypeToDir(topDir % directions.length), nav.edgeTypeToDir(centerDir % directions.length), nav.edgeTypeToDir(lowDir % directions.length)};
+		return retDirections;
 	}
 
 	public Direction[] checkAdjTiles() throws GameActionException {
-		int dirArraySize = 0;
-		for (int i = 0; i < directions.length; i++) {
-			if (rc.onTheMap(rc.adjacentLocation(directions[i]))) {
-				dirArraySize++;
+		int existCount = 0;
+		int[] tempDirs = new int[8];
+		for(i = 0; i < directions.length;i++){
+			if(rc.onTheMap(rc.adjacentLocation(directions[i])) == true){
+				tempDirs[i] = 1;
+				existCount++;
 			}
 		}
-		Direction[] availableDirs = new Direction[dirArraySize];
-		int j = 0;
-		for (int i = 0; i < directions.length; i++) {
-			if (rc.onTheMap(rc.adjacentLocation(directions[i]))) {
-				availableDirs[j] = directions[i];
-				j++;
+		Direction[] clearDirs = new Direction[existCount];
+		int tempIndex = 0;
+		for(i = 0; i< directions.length;i++){
+			if(tempDirs[i] == 1){
+				clearDirs[tempIndex] = directions[i];
+				tempIndex++;
 			}
 		}
-		return availableDirs;
+		return clearDirs;
 	}
 
 	public void checkFlags() throws GameActionException {
@@ -211,31 +238,6 @@ public class EnlightenmentCenter extends Robot {
 		}
 	}
 
-	public void findNearbyECs() {
-		RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-		int len = nearbyRobots.length;
-		for (int i = 0; i < len; i++) {
-			RobotInfo ri = nearbyRobots[i];
-			if (ri.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				if (ri.team.equals(myTeam)) {
-					if (!checkInArray(enemyECLocs, ri.location)) {
-						fellowECLocs[fellowECsIndex++] = ri.location;
-					}
-				} else if (ri.team.equals(opponentTeam)) {
-					if (!checkInArray(enemyECLocs, ri.location)) {
-						enemyECLocs[enemyECsIndex++] = ri.location;
-					}
-				} else {
-					if (!checkInArray(neutralECLocs, ri.location)) {
-						neutralECLocs[neutralECsIndex++] = ri.location;
-						buildQueueAdd(priorityBuildQueue,
-								new BuildUnit(RobotType.POLITICIAN, ri.conviction + 11, ri.location));
-					}
-				}
-			}
-		}
-	}
-
 	public void buildQueueRemove(BuildUnit[] buildQueue) {
 		for (int i = 1; i < buildQueue.length; i++) {
 			buildQueue[i - 1] = buildQueue[i];
@@ -258,6 +260,11 @@ public class EnlightenmentCenter extends Robot {
 		if (rc.canBuildRobot(bu.type, dirToBuild, bu.influence)) {
 			rc.buildRobot(bu.type, dirToBuild, bu.influence);
 			buildQueueRemove(priorityBuildQueue);
+			return;
+		}
+		dirToBuild = dirToBuild(M1);
+		if (rc.canBuildRobot(RobotType.MUCKRAKER, dirToBuild, 1)) {
+			rc.buildRobot(RobotType.MUCKRAKER, dirToBuild, 1);
 		}
 	}
 
@@ -267,18 +274,10 @@ public class EnlightenmentCenter extends Robot {
 			bu = initialBuildCycle[initialBuildCycleIndex++];
 		} else {
 			bu = regularBuildCycle[regularBuildCycleIndex++];
-			if (regularBuildCycleIndex == regularBuildCycle.length) {
-				regularBuildCycleIndex = 0;
-			}
 		}
 		Direction dirToBuild = dirToBuild(bu);
 		if (rc.canBuildRobot(bu.type, dirToBuild, bu.influence)) {
 			rc.buildRobot(bu.type, dirToBuild, bu.influence);
-		} else if (initialBuildCycleIndex < initialBuildCycle.length) {
-			dirToBuild = dirToBuild(M1);
-			if (rc.canBuildRobot(RobotType.MUCKRAKER, dirToBuild, 1)) {
-				rc.buildRobot(RobotType.MUCKRAKER, dirToBuild, 1);
-			}
 		}
 	}
 
