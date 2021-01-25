@@ -44,6 +44,9 @@ public class Politician extends Robot {
 
 	public void readECMessage() throws GameActionException {
 		int[] message = comms.readMessage(myECid);
+		if(message==null){
+			return;
+		}
 		int messageType = message[0];
 		if(messageType==Comms.FOUND_EC){
 			int targetXOffset = message[3];
