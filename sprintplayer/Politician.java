@@ -24,6 +24,7 @@ public class Politician extends Robot {
 	public RobotInfo[] neutralBots;
 	public RobotInfo[] robotsInEmpowerMax;
 	public MapLocation mainTargetLoc;
+	public Team mainTargetTeam;
 
 	public boolean clockwise = true; // what direction the politician will be circling the slanderer group
 
@@ -35,26 +36,35 @@ public class Politician extends Robot {
 		readECMessage();
 		if (conviction%5==1) {
 			politicianType = CAPTURER_POLITICIAN;
-		} else if (conviction == HERDER_POLITCIAN_INFLUENCE){ 
+		} else if (conviction%HERDER_POLITCIAN_INFLUENCE==0){ 
 			politicianType = HERDER_POLITICIAN;
 		} else {
 			politicianType = WANDERER_POLITICIAN;
 		}
 	}
 
-	public void readECMessage() throws GameActionException {
+	public int readECMessage() throws GameActionException {
 		int[] message = comms.readMessage(myECid);
 		if(message==null){
-			return;
+			return -1;
 		}
 		int messageType = message[0];
 		if(messageType==Comms.FOUND_EC){
+			Team targetTeam = myTeam;
+			if(message[1]==1){
+				targetTeam = opponentTeam;
+			} else if(message[1]==2){
+				targetTeam = Team.NEUTRAL;
+			}
 			int targetXOffset = message[3];
 			int targetYOffset = message[4];
 			int targetX=myECLoc.x+targetXOffset;
 			int targetY=myECLoc.y+targetYOffset;
 			mainTargetLoc=new MapLocation(targetX, targetY);
+			mainTargetTeam = targetTeam;
+			return Comms.FOUND_EC;
 		}
+		return -1;
 	}
 
 	public void takeTurn() throws GameActionException {
@@ -134,6 +144,8 @@ public class Politician extends Robot {
 			//if the target is no longer an enemy or neutral ec
 			if(mainTargetInfo.team.equals(myTeam) && mainTargetInfo.type.equals(RobotType.ENLIGHTENMENT_CENTER)){
 				politicianType=WANDERER_POLITICIAN;
+				mainTargetLoc=null;
+				mainTargetTeam=null;
 				nav.simpleExploration();
 				return;
 			}
@@ -147,9 +159,39 @@ public class Politician extends Robot {
 	}
 
 	public void wandererPolitician() throws GameActionException {
-		boolean foundEC = lookForECsToCapture();
-		if (!foundEC) {
+		if(conviction<=10){
 			nav.simpleExploration();
+			return;
+		}
+
+		int foundECToTarget = readECMessage();
+		if(foundECToTarget==Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam)){
+			politicianType=CAPTURER_POLITICIAN;
+			capturerPolitician();
+		}
+
+
+		boolean foundEC = lookForECsToCapture();
+		if(foundEC){
+			return;
+		}
+		
+		int empowerPower = (int) ((conviction-10) * rc.getEmpowerFactor(myTeam, 0));
+		
+		int enemyBotsLen = enemyBots.length;
+		RobotInfo target = null;
+		for (int i = 0; i < enemyBotsLen; i++) {
+			RobotInfo tempInfo = enemyBots[i];
+			if (tempInfo.team.equals(opponentTeam) && tempInfo.conviction>empowerPower*2) { //TODO: make the target selection better
+				target = enemyBots[i];
+				break;
+			}
+		}
+
+		if (target==null) {
+			nav.simpleExploration();
+		} else{
+			targetUnit(target);
 		}
 	}
 
@@ -177,36 +219,36 @@ public class Politician extends Robot {
 		}
 	}
 
-	public boolean shouldEmpower() throws GameActionException {
-		int empowerPower = (int) (conviction * rc.getEmpowerFactor(myTeam, 0));
-		if (empowerPower <= 10) {
-			return false;
-		}
-		boolean shouldSpeech = false;
-		int robotsInSpeechCount = robotsInEmpowerMax.length;
-		boolean enemyMuckrackerInRad = false;
-		for (int i = 0; i < robotsInSpeechCount; i++) {
-			RobotInfo ri = robotsInEmpowerMax[i];
-			Team tempTeam = ri.getTeam();
-			RobotType tempType = ri.getType();
-			if (tempTeam.equals(opponentTeam) && tempType.equals(RobotType.MUCKRAKER)) {
-				enemyMuckrackerInRad = true;
-			}
-		}
+	// public boolean shouldEmpower() throws GameActionException {
+	// 	int empowerPower = (int) (conviction * rc.getEmpowerFactor(myTeam, 0));
+	// 	if (empowerPower <= 10) {
+	// 		return false;
+	// 	}
+	// 	boolean shouldSpeech = false;
+	// 	int robotsInSpeechCount = robotsInEmpowerMax.length;
+	// 	boolean enemyMuckrackerInRad = false;
+	// 	for (int i = 0; i < robotsInSpeechCount; i++) {
+	// 		RobotInfo ri = robotsInEmpowerMax[i];
+	// 		Team tempTeam = ri.getTeam();
+	// 		RobotType tempType = ri.getType();
+	// 		if (tempTeam.equals(opponentTeam) && tempType.equals(RobotType.MUCKRAKER)) {
+	// 			enemyMuckrackerInRad = true;
+	// 		}
+	// 	}
 
-		// TODO: add more conditions for when a politician should explode
+	// 	// TODO: add more conditions for when a politician should explode
 
-		if (enemyMuckrackerInRad) {
-			shouldSpeech = true;
-		}
+	// 	if (enemyMuckrackerInRad) {
+	// 		shouldSpeech = true;
+	// 	}
 
-		if (shouldSpeech && rc.canEmpower(9)) {
-			rc.empower(9);
-			return true;
-		}
-		return false;
+	// 	if (shouldSpeech && rc.canEmpower(9)) {
+	// 		rc.empower(9);
+	// 		return true;
+	// 	}
+	// 	return false;
 
-	}
+	// }
 
 	public void targetUnit(RobotInfo targetRI) throws GameActionException {
 		if(conviction<=10){
