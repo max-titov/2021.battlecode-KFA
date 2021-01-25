@@ -1,4 +1,4 @@
-package sprintplayer;
+package muckattack;
 
 import battlecode.common.*;
 
@@ -7,9 +7,8 @@ public class Politician extends Robot {
 	/**
 	 * Constants
 	 */
-	public static final int HERDER_POLITCIAN_INFLUENCE = 16;
-	public static final int HERDER_POLITICIAN = 1;
-	public static final int CAPTURER_POLITICIAN = 2;
+	public final int HERDER_POLITICIAN = 1;
+	public final int CAPTURER_POLITICIAN = 2;
 
 	public static final int SLANDERER_FLAG = 934245;
 
