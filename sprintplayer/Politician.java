@@ -298,7 +298,7 @@ public class Politician extends Robot {
 		for (int i = 0; i < alliedBotsLen; i++) {
 			RobotInfo ri = alliedBots[i];
 
-			if (rc.getFlag(ri.getID()) == SLANDERER_FLAG) {
+			if (rc.canGetFlag(ri.getID()) && rc.getFlag(ri.getID()) == SLANDERER_FLAG) {
 				MapLocation tempLoc = ri.getLocation();
 				totalX += tempLoc.x;
 				totalY += tempLoc.y;
