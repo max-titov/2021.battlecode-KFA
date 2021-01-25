@@ -7,11 +7,13 @@ public class Politician extends Robot {
 	/**
 	 * Constants
 	 */
-	public static final int HERDER_POLITCIAN_INFLUENCE = 16;
-	public static final int HERDER_POLITICIAN = 1;
-	public static final int CAPTURER_POLITICIAN = 2;
+	public final int HERDER_POLITICIAN = 1;
+	public final int CAPTURER_POLITICIAN = 2;
+	public final int WANDERER_POLITICIAN = 3;
 
 	public static final int SLANDERER_FLAG = 934245;
+
+	public static final int HERDER_POLITCIAN_INFLUENCE = 18;
 
 	/**
 	 * Politician's attributes
@@ -21,6 +23,7 @@ public class Politician extends Robot {
 	public RobotInfo[] alliedBots;
 	public RobotInfo[] neutralBots;
 	public RobotInfo[] robotsInEmpowerMax;
+	public MapLocation mainTargetLoc;
 
 	public boolean clockwise = true; // what direction the politician will be circling the slanderer group
 
@@ -29,15 +32,31 @@ public class Politician extends Robot {
 		if (coinFlip()) {
 			clockwise = false;
 		}
-		if (conviction == 50) {
+		readECMessage();
+		if (conviction%5==1) {
 			politicianType = CAPTURER_POLITICIAN;
-		} else {
+		} else if (conviction == HERDER_POLITCIAN_INFLUENCE){ 
 			politicianType = HERDER_POLITICIAN;
+		} else {
+			politicianType = WANDERER_POLITICIAN;
+		}
+	}
+
+	public void readECMessage() throws GameActionException {
+		int[] message = comms.readMessage(myECid);
+		int messageType = message[0];
+		if(messageType==Comms.FOUND_EC){
+			int targetXOffset = message[3];
+			int targetYOffset = message[4];
+			int targetX=myECLoc.x+targetXOffset;
+			int targetY=myECLoc.y+targetYOffset;
+			mainTargetLoc=new MapLocation(targetX, targetY);
 		}
 	}
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
+		rc.setFlag(0); //TODO: this is a temp fix probably add something to robot
 		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
 		neutralBots = rc.senseNearbyRobots(sensorRadSq, Team.NEUTRAL);
@@ -50,11 +69,15 @@ public class Politician extends Robot {
 			case CAPTURER_POLITICIAN:
 				capturerPolitician();
 				break;
+			case WANDERER_POLITICIAN:
+				wandererPolitician();
+				break;
 		}
 	}
 
 	public void herderPolitician() throws GameActionException {
-		shouldEmpower();
+		//shouldEmpower();
+		targetEnemyMucks();
 
 		MapLocation avgLocNearbySlanderers = avgLocNearbySlanderers();
 		if (avgLocNearbySlanderers == null) {
@@ -82,7 +105,52 @@ public class Politician extends Robot {
 		nav.bugNav(moveDir);
 	}
 
+	public void targetEnemyMucks() throws GameActionException {
+		int enemyBotsLen = enemyBots.length;
+		RobotInfo target = null;
+		for (int i = 0; i < enemyBotsLen; i++) {
+			if (enemyBots[i].type.equals(RobotType.MUCKRAKER)) {
+				target = enemyBots[i];
+				break;
+			}
+		}
+		if(target!=null){
+			targetUnit(target);
+		}
+	}
+
 	public void capturerPolitician() throws GameActionException {
+		if(mainTargetLoc==null){
+			politicianType=WANDERER_POLITICIAN;
+			nav.simpleExploration();
+			return;
+		}
+
+		if(rc.canSenseLocation(mainTargetLoc)){
+			RobotInfo mainTargetInfo = rc.senseRobotAtLocation(mainTargetLoc);
+			//if the target is no longer an enemy or neutral ec
+			if(mainTargetInfo.team.equals(myTeam) && mainTargetInfo.type.equals(RobotType.ENLIGHTENMENT_CENTER)){
+				politicianType=WANDERER_POLITICIAN;
+				nav.simpleExploration();
+				return;
+			}
+		}
+
+		boolean foundEC = lookForECsToCapture();
+		
+		if (!foundEC) {
+			nav.tryMoveToTarget(mainTargetLoc);
+		}
+	}
+
+	public void wandererPolitician() throws GameActionException {
+		boolean foundEC = lookForECsToCapture();
+		if (!foundEC) {
+			nav.simpleExploration();
+		}
+	}
+
+	public boolean lookForECsToCapture() throws GameActionException {
 		int enemyBotsLen = enemyBots.length;
 		RobotInfo target = null;
 		for (int i = 0; i < enemyBotsLen; i++) {
@@ -100,8 +168,9 @@ public class Politician extends Robot {
 		}
 		if (target != null) {
 			targetUnit(target);
+			return true;
 		} else {
-			nav.simpleExploration();
+			return false;
 		}
 	}
 
@@ -137,7 +206,10 @@ public class Politician extends Robot {
 	}
 
 	public void targetUnit(RobotInfo targetRI) throws GameActionException {
-		int empowerPower = (int) (conviction * rc.getEmpowerFactor(myTeam, 0));
+		if(conviction<=10){
+			return;
+		}
+		int empowerPower = (int) ((conviction-10) * rc.getEmpowerFactor(myTeam, 0));
 		MapLocation targetLoc = targetRI.location;
 		int distToTarget = currLoc.distanceSquaredTo(targetLoc);
 		int targetConviction = targetRI.conviction;
@@ -153,7 +225,7 @@ public class Politician extends Robot {
 
 		int avgConvictionToDistribute = robotsInEmpowerTargetRadLen / empowerPower;
 
-		if (robotsInEmpowerTargetRadLen==1 || avgConvictionToDistribute > targetConviction || (robotsInEmpowerTargetRadLen < 3 && distToTarget <= 2)) {
+		if (robotsInEmpowerTargetRadLen==1 || avgConvictionToDistribute > targetConviction || distToTarget <= 2) {
 			if (rc.canEmpower(distToTarget)) {
 				rc.empower(distToTarget);
 				return;

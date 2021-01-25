@@ -13,6 +13,8 @@ public class Politician extends Robot {
 
 	public static final int SLANDERER_FLAG = 934245;
 
+	public static final int HERDER_POLITCIAN_INFLUENCE = 18;
+
 	/**
 	 * Politician's attributes
 	 */
@@ -33,7 +35,7 @@ public class Politician extends Robot {
 		readECMessage();
 		if (conviction%5==1) {
 			politicianType = CAPTURER_POLITICIAN;
-		} else if (conviction == 18){ //TODO: make global variable after merging with sprint player
+		} else if (conviction == HERDER_POLITCIAN_INFLUENCE){ 
 			politicianType = HERDER_POLITICIAN;
 		} else {
 			politicianType = WANDERER_POLITICIAN;
