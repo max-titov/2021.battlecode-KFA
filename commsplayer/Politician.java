@@ -36,18 +36,6 @@ public class Politician extends Robot {
 	}
 
 	public void takeTurn() throws GameActionException {
-<<<<<<< HEAD
-		/*
-		 * Team enemy = rc.getTeam().opponent(); int actionRadius =
-		 * rc.getType().actionRadiusSquared; RobotInfo[] attackable =
-		 * rc.senseNearbyRobots(actionRadius, enemy); if (attackable.length != 0 &&
-		 * rc.canEmpower(actionRadius)) { System.out.println("empowering...");
-		 * rc.empower(actionRadius); System.out.println("empowered"); return; } if
-		 * (tryMove(randomDirection())) System.out.println("I moved!");
-		 */
-		System.out.println("Attempting to set a flag");
-		comm.sendFoundECMessage(this.myTeam, 2, new MapLocation(16, 16));
-=======
 		super.takeTurn();
 		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
@@ -197,7 +185,6 @@ public class Politician extends Robot {
 				totalX += tempLoc.x;
 				totalY += tempLoc.y;
 				slandererCount++;
->>>>>>> 6be65c4d3c3fbdda81b31b2ddb7a9b9a1a8ba07a
 
 			}
 		}
