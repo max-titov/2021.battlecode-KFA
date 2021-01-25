@@ -96,9 +96,11 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public void explorerMuckraker() throws GameActionException {
-		findEnemyEC();
+		findEC();
 		int[] edges = nav.lookForEdges();
-		// comms.reportEdge
+		if (edgeDetected) {
+			comms.dropFlag();
+		}
 		if (edges == null) {
 			edgeDetected = false;
 		} else if (edges[0] != lastEdgeType) {
@@ -114,9 +116,8 @@ public class Muckraker extends Robot {
 		} else {
 			edgeDetected = true;
 		}
-		System.out.println("Heading: " + heading + " Target: " + target);
 		if (edges != null && !edgeDetected) {
-			// raise flag telling it found edge and coordinates of edge
+			comms.sendFoundEdgeMessage(edges[0], edges[1], edges[2]);
 			edgeDetected = true;
 			updateTargetAtEdge(edges);
 			lastEdgeType = edges[0];
@@ -203,14 +204,24 @@ public class Muckraker extends Robot {
 	/**
 	 * checks for the enemy EC and saves it to a variable
 	 * 
+	 * @throws GameActionException
+	 * 
 	 */
-	public void findEnemyEC() {
+	public void findEC() throws GameActionException {
 		for (int i = 0; i < robotsInSense.length; i++) {
 			RobotInfo ri = robotsInSense[i];
 			if (ri.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				System.out.println("Found enemy EC");
-				enemyEC = ri.getLocation();
-				return;
+				comms.sendFoundECMessage(ri);
+				enemyEC = ri.location;
+				break;
+			}
+		}
+		RobotInfo[] neutralRobots = rc.senseNearbyRobots(30, Team.NEUTRAL);
+		for (int i = 0; i < neutralRobots.length; i++) {
+			RobotInfo ri = neutralRobots[i];
+			if (ri.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+				comms.sendFoundECMessage(ri);
+				break;
 			}
 		}
 	}
