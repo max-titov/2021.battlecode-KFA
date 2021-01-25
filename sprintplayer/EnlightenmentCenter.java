@@ -12,7 +12,6 @@ public class EnlightenmentCenter extends Robot {
 	/**
 	 * Attributes
 	 */
-	public boolean firstSlandererCreated;
 	public int[] robotIDs;
 	public int numOfRobotsCreated;
 	// Map
@@ -22,7 +21,6 @@ public class EnlightenmentCenter extends Robot {
 	public int westX;
 	public int mapWidth;
 	public int mapHeight;
-	public Direction[] adjDirections;
 	// EC Locations
 	public MapLocation[] enemyECLocs;
 	public int enemyECsIndex;
@@ -30,6 +28,11 @@ public class EnlightenmentCenter extends Robot {
 	public int fellowECsIndex;
 	public MapLocation[] neutralECLocs;
 	public int neutralECsIndex;
+	// Common BuildUnits
+	BuildUnit S130;
+	BuildUnit M1;
+	BuildUnit P18;
+	BuildUnit S41;
 	// Build Queues
 	public boolean initialBuildCycleDone;
 	public BuildUnit[] initialBuildCycle;
@@ -44,9 +47,6 @@ public class EnlightenmentCenter extends Robot {
 	public int slandererDirIndex;
 	public Direction[] politicianDirs;
 	public int politicianDirIndex;
-	// Common BuildUnits
-	BuildUnit S130;
-	BuildUnit M1;
 
 	/**
 	 * Constructor
@@ -60,14 +60,17 @@ public class EnlightenmentCenter extends Robot {
 		enemyECLocs = new MapLocation[12];
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
-		BuildUnit S130 = new BuildUnit(RobotType.SLANDERER, 130);
-		BuildUnit M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
-		BuildUnit P18 = new BuildUnit(RobotType.POLITICIAN, 18);
-		BuildUnit S41 = new BuiltUnit(RobotType.SLANDERER, 41);
-		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41};
-		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1};
+		S130 = new BuildUnit(RobotType.SLANDERER, 130);
+		M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
+		P18 = new BuildUnit(RobotType.POLITICIAN, 18);
+		S41 = new BuildUnit(RobotType.SLANDERER, 41);
+		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41,
+				P18, S41, S41, P18, S41 };
+		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
-		adjDirections = checkAdjTiles();
+		muckrakerDirs = checkAdjTiles();
+		politicianDirs = checkAdjTiles();
+		// determine slandererDirs here
 	}
 
 	public void takeTurn() throws GameActionException {
@@ -81,23 +84,21 @@ public class EnlightenmentCenter extends Robot {
 	}
 
 	public Direction[] checkAdjTiles() throws GameActionException {
-		int existCount = 0;
-		int[] tempDirs = new int[8];
-		for(i = 0; i < directions.length;i++){
-			if(rc.onTheMap(rc.adjacentLocation(directions[i])) == true){
-				tempDirs[i] = 1;
-				existCount++;
+		int dirArraySize = 0;
+		for (int i = 0; i < directions.length; i++) {
+			if (rc.onTheMap(rc.adjacentLocation(directions[i]))) {
+				dirArraySize++;
 			}
 		}
-		Direction[] clearDirs = new Direction[existCount];
-		int tempIndex = 0;
-		for(i = 0; i< directions.length;i++){
-			if(tempDirs[i] == 1){
-				clearDirs[tempIndex] = directions[i];
-				tempIndex++;
+		Direction[] availableDirs = new Direction[dirArraySize];
+		int j = 0;
+		for (int i = 0; i < directions.length; i++) {
+			if (rc.onTheMap(rc.adjacentLocation(directions[i]))) {
+				availableDirs[j] = directions[i];
+				j++;
 			}
 		}
-		return clearDirs;
+		return availableDirs;
 	}
 
 	public void checkFlags() throws GameActionException {
