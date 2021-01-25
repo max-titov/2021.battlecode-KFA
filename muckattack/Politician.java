@@ -1,4 +1,4 @@
-package commsplayer;
+package muckattack;
 
 import battlecode.common.*;
 
@@ -36,18 +36,6 @@ public class Politician extends Robot {
 	}
 
 	public void takeTurn() throws GameActionException {
-<<<<<<< HEAD
-		/*
-		 * Team enemy = rc.getTeam().opponent(); int actionRadius =
-		 * rc.getType().actionRadiusSquared; RobotInfo[] attackable =
-		 * rc.senseNearbyRobots(actionRadius, enemy); if (attackable.length != 0 &&
-		 * rc.canEmpower(actionRadius)) { System.out.println("empowering...");
-		 * rc.empower(actionRadius); System.out.println("empowered"); return; } if
-		 * (tryMove(randomDirection())) System.out.println("I moved!");
-		 */
-		System.out.println("Attempting to set a flag");
-		comm.sendFoundECMessage(this.myTeam, 2, new MapLocation(16, 16));
-=======
 		super.takeTurn();
 		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
@@ -97,14 +85,14 @@ public class Politician extends Robot {
 		int enemyBotsLen = enemyBots.length;
 		RobotInfo target = null;
 		for (int i = 0; i < enemyBotsLen; i++) {
-			if (enemyBots[i].equals(RobotType.ENLIGHTENMENT_CENTER)) {
+			if (enemyBots[i].type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
 				target = enemyBots[i];
 				break;
 			}
 		}
 		int neutralBotsLen = neutralBots.length;
 		for (int i = 0; i < neutralBotsLen; i++) {
-			if (neutralBots[i].equals(RobotType.ENLIGHTENMENT_CENTER)) {
+			if (neutralBots[i].type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
 				target = neutralBots[i];
 				break;
 			}
@@ -119,7 +107,6 @@ public class Politician extends Robot {
 	public boolean shouldEmpower() throws GameActionException {
 		int empowerPower = (int) (conviction * rc.getEmpowerFactor(myTeam, 0));
 		if (empowerPower <= 10) {
-			// TODO: if a muck killed a slanderer(s), then this might be the wrong move
 			return false;
 		}
 		boolean shouldSpeech = false;
@@ -165,7 +152,7 @@ public class Politician extends Robot {
 
 		int avgConvictionToDistribute = robotsInEmpowerTargetRadLen / empowerPower;
 
-		if (avgConvictionToDistribute > targetConviction || (robotsInEmpowerTargetRadLen < 3 && distToTarget <= 2)) {
+		if (robotsInEmpowerTargetRadLen==1 || avgConvictionToDistribute > targetConviction || (robotsInEmpowerTargetRadLen < 3 && distToTarget <= 2)) {
 			if (rc.canEmpower(distToTarget)) {
 				rc.empower(distToTarget);
 				return;
@@ -197,7 +184,6 @@ public class Politician extends Robot {
 				totalX += tempLoc.x;
 				totalY += tempLoc.y;
 				slandererCount++;
->>>>>>> 6be65c4d3c3fbdda81b31b2ddb7a9b9a1a8ba07a
 
 			}
 		}

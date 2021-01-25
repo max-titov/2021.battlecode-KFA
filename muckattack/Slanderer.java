@@ -1,4 +1,4 @@
-package navtest;
+package muckattack;
 
 import battlecode.common.*;
 
@@ -23,8 +23,6 @@ public class Slanderer extends Robot {
 	public boolean firstInBunch = false;
 	public MapLocation bunchLoc;
 
-	public Robot convertedToPolitician = new Politician(rc);
-
 	public Slanderer(RobotController rc) throws GameActionException {
 		super(rc);
 		rc.setFlag(SLANDERER_FLAG);
@@ -32,17 +30,11 @@ public class Slanderer extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-
-		if(rc.getType().equals(RobotType.POLITICIAN)){
-			convertedToPolitician.takeTurn();
-			return;
-		}
-
 		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
 		neutralBots = rc.senseNearbyRobots(sensorRadSq, Team.NEUTRAL);
-		slandererType=BUNCH_SLANDERER;
-		//nav.tryMove(randomDirection());
+		slandererType = BUNCH_SLANDERER;
+		// nav.tryMove(randomDirection());
 		switch (slandererType) {
 			case BUNCH_SLANDERER:
 				bunchSlanderer();
@@ -57,25 +49,25 @@ public class Slanderer extends Robot {
 	 * @throws GameActionException
 	 */
 	public void bunchSlanderer() throws GameActionException {
-		if(beAPussy()){
+		if (beAPussy()) {
 			return;
 		}
 
 		MapLocation targetLocation = null;
 		MapLocation avgSlandererLoc = avgLocNearbySlanderers();
 		MapLocation desiredBunchLoc = newBunchAwayFromEC();
-		if(avgSlandererLoc==null){
-			targetLocation=desiredBunchLoc;
+		if (avgSlandererLoc == null) {
+			targetLocation = desiredBunchLoc;
 			rc.setIndicatorLine(currLoc, targetLocation, 255, 0, 0);
 			rc.setIndicatorDot(desiredBunchLoc, 0, 0, 255);
-		}else{
-			targetLocation=nav.avgLocations(avgSlandererLoc, desiredBunchLoc);
+		} else {
+			targetLocation = nav.avgLocations(avgSlandererLoc, desiredBunchLoc);
 			rc.setIndicatorLine(currLoc, targetLocation, 255, 0, 0);
 			rc.setIndicatorDot(avgSlandererLoc, 0, 255, 0);
 			rc.setIndicatorDot(desiredBunchLoc, 0, 0, 255);
 		}
-		
-		if (targetLocation != null){
+
+		if (targetLocation != null) {
 			nav.bugNav(targetLocation);
 		}
 	}
@@ -106,7 +98,7 @@ public class Slanderer extends Robot {
 
 	public boolean beAPussy() throws GameActionException {
 		MapLocation avgEnemyMuckLoc = avgEnemyMuckLoc();
-		if(avgEnemyMuckLoc==null){
+		if (avgEnemyMuckLoc == null) {
 			return false;
 		}
 		Direction dirToRun = avgEnemyMuckLoc.directionTo(currLoc);
@@ -123,7 +115,7 @@ public class Slanderer extends Robot {
 		for (int i = 0; i < alliedBotsLen; i++) {
 			RobotInfo ri = alliedBots[i];
 
-			if (rc.getFlag(ri.getID())==SLANDERER_FLAG) {
+			if (rc.getFlag(ri.getID()) == SLANDERER_FLAG) {
 				MapLocation tempLoc = ri.getLocation();
 				totalX += tempLoc.x;
 				totalY += tempLoc.y;
@@ -169,8 +161,8 @@ public class Slanderer extends Robot {
 	}
 
 	// public MapLocation bunchLocAwayFromEC() throws GameActionException {
-	// 	Direction dir = nav.relativeLocToEC(currLoc);
-	// 	MapLocation testLoc = currLoc.add(Direction.CENTER);
+	// Direction dir = nav.relativeLocToEC(currLoc);
+	// MapLocation testLoc = currLoc.add(Direction.CENTER);
 	// }
 
 }

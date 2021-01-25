@@ -103,6 +103,11 @@ public class EnlightenmentCenter extends Robot {
 					break;
 			}
 		}
+<<<<<<< HEAD
+		if(rc.canGetFlag(spawnedBotID)){
+			int[] commsTest = comm.readFoundECMessage(rc.getFlag(spawnedBotID));
+			System.out.println(Arrays.toString(commsTest));
+=======
 	}
 
 	public void saveEdge(int[] info) {
@@ -162,6 +167,7 @@ public class EnlightenmentCenter extends Robot {
 					westX = currLoc.x + xOff;
 				}
 				break;
+>>>>>>> 6be65c4d3c3fbdda81b31b2ddb7a9b9a1a8ba07a
 		}
 	}
 
