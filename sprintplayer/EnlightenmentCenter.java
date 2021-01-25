@@ -12,7 +12,6 @@ public class EnlightenmentCenter extends Robot {
 	/**
 	 * Attributes
 	 */
-	public boolean firstSlandererCreated;
 	public int[] robotIDs;
 	public int numOfRobotsCreated;
 	// Map
@@ -22,7 +21,6 @@ public class EnlightenmentCenter extends Robot {
 	public int westX;
 	public int mapWidth;
 	public int mapHeight;
-	public Direction[] adjDirections;
 	// EC Locations
 	public MapLocation[] enemyECLocs;
 	public int enemyECsIndex;
@@ -47,6 +45,8 @@ public class EnlightenmentCenter extends Robot {
 	// Common BuildUnits
 	BuildUnit S130;
 	BuildUnit M1;
+	BuildUnit P18;
+	BuildUnit S41;
 
 	/**
 	 * Constructor
@@ -60,16 +60,17 @@ public class EnlightenmentCenter extends Robot {
 		enemyECLocs = new MapLocation[12];
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
-		BuildUnit S130 = new BuildUnit(RobotType.SLANDERER, 130);
-		BuildUnit M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
-		BuildUnit P18 = new BuildUnit(RobotType.POLITICIAN, 18);
-		BuildUnit S41 = new BuildUnit(RobotType.SLANDERER, 41);
+		S130 = new BuildUnit(RobotType.SLANDERER, 130);
+		M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
+		P18 = new BuildUnit(RobotType.POLITICIAN, 18);
+		S41 = new BuildUnit(RobotType.SLANDERER, 41);
 		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41,
 				P18, S41, S41, P18, S41 };
 		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
+		muckrakerDirs = checkAdjTiles();
+		politicianDirs = checkAdjTiles();
 		slandererDirs = getSlandererDirs();
-		adjDirections = checkAdjTiles();
 	}
 
 	public void takeTurn() throws GameActionException {
