@@ -8,15 +8,10 @@ public class EnlightenmentCenter extends Robot {
 	 */
 	public static final int NUM_OF_UNITS_TO_TRACK = 100;
 	public static final int PRIORITY_BUILD_QUEUE_SIZE = 20;
-	public static final int REGULAR_BUILD_CYCLE_SIZE = 20;
-
-	// messages
-	// public final int EDGE_MESSAGE = ;
 
 	/**
 	 * Attributes
 	 */
-	public int muckrakerDirIndex;
 	public boolean firstSlandererCreated;
 	public int[] robotIDs;
 	public int numOfRobotsCreated;
@@ -41,6 +36,16 @@ public class EnlightenmentCenter extends Robot {
 	public BuildUnit[] regularBuildCycle;
 	public int regularBuildCycleIndex;
 	public BuildUnit[] priorityBuildQueue;
+	// Directions
+	public Direction[] muckrakerDirs;
+	public int muckrakerDirIndex;
+	public Direction[] slandererDirs;
+	public int slandererDirIndex;
+	public Direction[] politicianDirs;
+	public int politicianDirIndex;
+	// Common BuildUnits
+	BuildUnit S130;
+	BuildUnit M1;
 
 	/**
 	 * Constructor
@@ -54,10 +59,9 @@ public class EnlightenmentCenter extends Robot {
 		enemyECLocs = new MapLocation[12];
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
-		BuildUnit S130 = new BuildUnit(RobotType.SLANDERER, 130);
-		BuildUnit M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
+		S130 = new BuildUnit(RobotType.SLANDERER, 130);
+		M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
 		initialBuildCycle = new BuildUnit[] { S130, M1 };
-		regularBuildCycle = new BuildUnit[REGULAR_BUILD_CYCLE_SIZE];
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 	}
 
@@ -97,7 +101,7 @@ public class EnlightenmentCenter extends Robot {
 							if (!checkInArray(neutralECLocs, toAdd)) {
 								neutralECLocs[neutralECsIndex++] = toAdd;
 								buildQueueAdd(priorityBuildQueue, new BuildUnit(RobotType.POLITICIAN,
-										comms.convIntRangeToMaxConv(info[2]), toAdd));
+										comms.convIntRangeToMaxConv(info[2]) + 11, toAdd));
 							}
 							break;
 					}
@@ -191,54 +195,80 @@ public class EnlightenmentCenter extends Robot {
 		}
 	}
 
-	public boolean buildQueueUnit(BuildUnit[] buildQueue) throws GameActionException {
-		if (buildQueue[0] == null) {
-			return false;
+	public void buildPriorityQueueUnit() throws GameActionException {
+		BuildUnit bu = priorityBuildQueue[0];
+		Direction dirToBuild = dirToBuild(bu);
+		if (rc.canBuildRobot(bu.type, dirToBuild, bu.influence)) {
+			rc.buildRobot(bu.type, dirToBuild, bu.influence);
+			buildQueueRemove(priorityBuildQueue);
+			return;
 		}
-		if (rc.canBuildRobot(buildQueue[0].type, buildQueue[0].dirToBuild, buildQueue[0].influence)) {
-			rc.buildRobot(buildQueue[0].type, buildQueue[0].dirToBuild, buildQueue[0].influence);
-			buildQueueRemove(buildQueue);
-			return true;
+		dirToBuild = dirToBuild(M1);
+		if (rc.canBuildRobot(RobotType.MUCKRAKER, dirToBuild, 1)) {
+			rc.buildRobot(RobotType.MUCKRAKER, dirToBuild, 1);
 		}
-		return false;
 	}
 
-	public boolean buildCycleUnit(BuildUnit[] buildCycle) throws GameActionException {
-		if (buildCycle == initialBuildCycle) {
-			if (rc.canBuildRobot(initialBuildCycle[initialBuildCycleIndex].type,
-					initialBuildCycle[initialBuildCycleIndex].dirToBuild,
-					initialBuildCycle[initialBuildCycleIndex].influence)) {
-				rc.buildRobot(initialBuildCycle[initialBuildCycleIndex].type,
-						initialBuildCycle[initialBuildCycleIndex].dirToBuild,
-						initialBuildCycle[initialBuildCycleIndex].influence);
-				initialBuildCycleIndex++;
-				return true;
-			} else {
-				return buildMuckraker();
-			}
+	public void buildCycleUnit() throws GameActionException {
+		BuildUnit bu;
+		if (initialBuildCycleIndex < initialBuildCycle.length) {
+			bu = initialBuildCycle[initialBuildCycleIndex++];
+		} else {
+			bu = regularBuildCycle[regularBuildCycleIndex++];
 		}
-		if (buildCycle == regularBuildCycle) {
-			if (rc.canBuildRobot(regularBuildCycle[regularBuildCycleIndex].type,
-					regularBuildCycle[regularBuildCycleIndex].dirToBuild,
-					regularBuildCycle[regularBuildCycleIndex].influence)) {
-				rc.buildRobot(regularBuildCycle[regularBuildCycleIndex].type,
-						regularBuildCycle[regularBuildCycleIndex].dirToBuild,
-						regularBuildCycle[regularBuildCycleIndex].influence);
-				regularBuildCycleIndex++;
-				return true;
-			} else {
-				return false;
-			}
+		Direction dirToBuild = dirToBuild(bu);
+		if (rc.canBuildRobot(bu.type, dirToBuild, bu.influence)) {
+			rc.buildRobot(bu.type, dirToBuild, bu.influence);
 		}
-		return false;
 	}
 
-	public boolean buildMuckraker() throws GameActionException {
-		if (rc.canBuildRobot(RobotType.MUCKRAKER, directions[muckrakerDirIndex], 1)) {
-			rc.buildRobot(RobotType.MUCKRAKER, directions[muckrakerDirIndex++], 1);
-			return true;
+	public Direction dirToBuild(BuildUnit bu) throws GameActionException {
+		Direction dirToBuild;
+		if (bu.hasTargetEC()) {
+			dirToBuild = currLoc.directionTo(bu.targetECLoc);
+			while (!rc.onTheMap(currLoc.add(dirToBuild)) || rc.isLocationOccupied(currLoc.add(dirToBuild))) {
+				dirToBuild = dirToBuild.rotateRight();
+			}
+		} else if (bu.type.equals(RobotType.SLANDERER)) {
+			dirToBuild = slandererDirs[slandererDirIndex++];
+			if (slandererDirIndex == slandererDirs.length) {
+				slandererDirIndex = 0;
+			}
+			while (rc.isLocationOccupied(currLoc.add(dirToBuild))) {
+				dirToBuild = slandererDirs[slandererDirIndex++];
+				if (slandererDirIndex == slandererDirs.length) {
+					slandererDirIndex = 0;
+				}
+			}
+		} else if (bu.type.equals(RobotType.POLITICIAN) && bu.influence == Politician.HERDER_POLITCIAN_INFLUENCE) {
+			dirToBuild = slandererDirs[(slandererDirIndex - 1 + slandererDirs.length) % slandererDirs.length];
+			while (!rc.onTheMap(currLoc.add(dirToBuild)) || rc.isLocationOccupied(currLoc.add(dirToBuild))) {
+				dirToBuild = dirToBuild.rotateRight();
+			}
+		} else if (bu.type.equals(RobotType.POLITICIAN)) {
+			dirToBuild = politicianDirs[politicianDirIndex++];
+			if (politicianDirIndex == politicianDirs.length) {
+				politicianDirIndex = 0;
+			}
+			while (rc.isLocationOccupied(currLoc.add(dirToBuild))) {
+				dirToBuild = politicianDirs[politicianDirIndex++];
+				if (politicianDirIndex == politicianDirs.length) {
+					politicianDirIndex = 0;
+				}
+			}
+		} else {
+			dirToBuild = muckrakerDirs[muckrakerDirIndex++];
+			if (muckrakerDirIndex == muckrakerDirs.length) {
+				muckrakerDirIndex = 0;
+			}
+			while (rc.isLocationOccupied(currLoc.add(dirToBuild))) {
+				dirToBuild = muckrakerDirs[muckrakerDirIndex++];
+				if (muckrakerDirIndex == muckrakerDirs.length) {
+					muckrakerDirIndex = 0;
+				}
+			}
 		}
-		return false;
+		return dirToBuild;
 	}
 
 	public boolean checkInArray(MapLocation[] arr, MapLocation toCheck) {
