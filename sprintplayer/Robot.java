@@ -115,6 +115,10 @@ public class Robot {
 		return directions[(int) (Math.random() * directions.length)];
 	}
 
+	public Direction randomDirection(Direction[] possibleDirs) {
+		return possibleDirs[(int) (Math.random() * possibleDirs.length)];
+	}
+
 	public RobotType randomSpawnableRobotType() {
 		return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
 	}
