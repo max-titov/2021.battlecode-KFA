@@ -34,7 +34,6 @@ public class EnlightenmentCenter extends Robot {
 	BuildUnit P18;
 	BuildUnit S41;
 	// Build Queues
-	public boolean initialBuildCycleDone;
 	public BuildUnit[] initialBuildCycle;
 	public int initialBuildCycleIndex;
 	public BuildUnit[] regularBuildCycle;
@@ -71,12 +70,15 @@ public class EnlightenmentCenter extends Robot {
 		muckrakerDirs = checkAdjTiles();
 		politicianDirs = checkAdjTiles();
 		// determine slandererDirs here
+		findNearbyECs();
 	}
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		checkFlags();
-		if (priorityBuildQueue[0] != null) {
+		if (initialBuildCycleIndex < initialBuildCycle.length) {
+			buildCycleUnit();
+		} else if (priorityBuildQueue[0] != null) {
 			buildPriorityQueueUnit();
 		} else {
 			buildCycleUnit();
@@ -206,6 +208,31 @@ public class EnlightenmentCenter extends Robot {
 		}
 		if (southY != 0 && northY != 0 && mapHeight == 0) {
 			mapHeight = northY - southY + 1;
+		}
+	}
+
+	public void findNearbyECs() {
+		RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+		int len = nearbyRobots.length;
+		for (int i = 0; i < len; i++) {
+			RobotInfo ri = nearbyRobots[i];
+			if (ri.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+				if (ri.team.equals(myTeam)) {
+					if (!checkInArray(enemyECLocs, ri.location)) {
+						fellowECLocs[fellowECsIndex++] = ri.location;
+					}
+				} else if (ri.team.equals(opponentTeam)) {
+					if (!checkInArray(enemyECLocs, ri.location)) {
+						enemyECLocs[enemyECsIndex++] = ri.location;
+					}
+				} else {
+					if (!checkInArray(neutralECLocs, ri.location)) {
+						neutralECLocs[neutralECsIndex++] = ri.location;
+						buildQueueAdd(priorityBuildQueue,
+								new BuildUnit(RobotType.POLITICIAN, ri.conviction + 11, ri.location));
+					}
+				}
+			}
 		}
 	}
 
