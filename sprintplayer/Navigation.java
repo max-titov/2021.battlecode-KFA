@@ -6,27 +6,29 @@ public class Navigation {
 	/**
 	 * Constants
 	 */
-	public final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST, Direction.SOUTHEAST,
-			Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
-	public final int directionsLen = directions.length;
+	public static final Direction[] directions = { Direction.NORTH, Direction.NORTHEAST, Direction.EAST,
+			Direction.SOUTHEAST, Direction.SOUTH, Direction.SOUTHWEST, Direction.WEST, Direction.NORTHWEST, };
+	public static final int directionsLen = directions.length;
 
-	public final Direction N = Direction.NORTH;
-	public final Direction NW = Direction.NORTHWEST;
-	public final Direction W = Direction.WEST;
-	public final Direction SW = Direction.SOUTHWEST;
-	public final Direction S = Direction.SOUTH;
-	public final Direction SE = Direction.SOUTHEAST;
-	public final Direction E = Direction.EAST;
-	public final Direction NE = Direction.NORTHEAST;
+	public static final Direction N = Direction.NORTH;
+	public static final Direction NW = Direction.NORTHWEST;
+	public static final Direction W = Direction.WEST;
+	public static final Direction SW = Direction.SOUTHWEST;
+	public static final Direction S = Direction.SOUTH;
+	public static final Direction SE = Direction.SOUTHEAST;
+	public static final Direction E = Direction.EAST;
+	public static final Direction NE = Direction.NORTHEAST;
 
-	public final int NORTH_INT = 0;
-	public final int NORTHEAST_INT = 1;
-	public final int EAST_INT = 2;
-	public final int SOUTHEAST_INT = 3;
-	public final int SOUTH_INT = 4;
-	public final int SOUTHWEST_INT = 5;
-	public final int WEST_INT = 6;
-	public final int NORTHWEST_INT = 7;
+	public static final int NORTH_INT = 0;
+	public static final int NORTHEAST_INT = 1;
+	public static final int EAST_INT = 2;
+	public static final int SOUTHEAST_INT = 3;
+	public static final int SOUTH_INT = 4;
+	public static final int SOUTHWEST_INT = 5;
+	public static final int WEST_INT = 6;
+	public static final int NORTHWEST_INT = 7;
+
+	public static final int MOVES_IN_DIR_TILL_SWITCH = 8;
 
 	/**
 	 * Navigation attributes
@@ -40,7 +42,6 @@ public class Navigation {
 
 	public Direction currentExplorationDir = randomDirection();
 	public int movesInCurrentDir = 0;
-	public final int movesInCurrentDirBeforeSwitch = 8;
 
 	/**
 	 * Constructor
@@ -77,7 +78,7 @@ public class Navigation {
 		if (!dir.equals(currentExplorationDir)) {
 			movesInCurrentDir = 0;
 			currentExplorationDir = dir;
-		} else if (movesInCurrentDir >= movesInCurrentDirBeforeSwitch || !rc.onTheMap(currLoc.add(dir))) {
+		} else if (movesInCurrentDir >= MOVES_IN_DIR_TILL_SWITCH || !rc.onTheMap(currLoc.add(dir))) {
 			movesInCurrentDir = 0;
 			currentExplorationDir = randomDirection();
 		}
