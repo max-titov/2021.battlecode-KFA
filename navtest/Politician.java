@@ -21,7 +21,7 @@ public class Politician extends Robot {
 	public RobotInfo[] alliedBots;
 	public RobotInfo[] neutralBots;
 	public RobotInfo[] robotsInEmpowerMax;
-	public MapLocation mainTargetLoc = new MapLocation(26572, 23918);
+	public MapLocation mainTargetLoc;
 
 	public boolean clockwise = true; // what direction the politician will be circling the slanderer group
 
@@ -30,12 +30,25 @@ public class Politician extends Robot {
 		if (coinFlip()) {
 			clockwise = false;
 		}
+		readECMessage();
 		if (conviction%5==1) {
 			politicianType = CAPTURER_POLITICIAN;
 		} else if (conviction == 18){ //TODO: make global variable after merging with sprint player
 			politicianType = HERDER_POLITICIAN;
 		} else {
 			politicianType = WANDERER_POLITICIAN;
+		}
+	}
+
+	public void readECMessage() throws GameActionException {
+		int[] message = comms.readMessage(myECid);
+		int messageType = message[0];
+		if(messageType==Comms.FOUND_EC){
+			int targetXOffset = message[3];
+			int targetYOffset = message[4];
+			int targetX=myECLoc.x+targetXOffset;
+			int targetY=myECLoc.y+targetYOffset;
+			mainTargetLoc=new MapLocation(targetX, targetY);
 		}
 	}
 

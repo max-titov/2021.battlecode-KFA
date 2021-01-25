@@ -19,6 +19,7 @@ public class Robot {
 	public Team myTeam;
 	public Team opponentTeam;
 	public RobotType myType;
+	public int myVotes;
 	public int robotAge;
 	public int conviction;
 	public double cooldownTurns;
@@ -30,6 +31,8 @@ public class Robot {
 	public int sensorRadSq;
 	public MapLocation myECLoc;
 	public int myECid;
+	public int xOffset;
+	public int yOffset;
 
 	/**
 	 * Constructor
@@ -43,6 +46,7 @@ public class Robot {
 		myTeam = rc.getTeam();
 		opponentTeam = myTeam.opponent();
 		myType = rc.getType();
+		myVotes = rc.getTeamVotes();
 		id = rc.getID();
 		robotAge = 0;
 		conviction = rc.getConviction();
@@ -51,21 +55,25 @@ public class Robot {
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
 		sensorRadSq = getSensorRadiusSq();
+		this.comms = new Comms(rc, myTeam, opponentTeam, currLoc, myECLoc);
 		this.nav = new Navigation(rc, currLoc, myECLoc);
-		this.comms = new Comms(rc);
 	}
 
 	/**
 	 * 'Robot' Object Methods
 	 */
 	public void takeTurn() throws GameActionException {
+		myVotes = rc.getTeamVotes();
 		robotAge += 1;
 		conviction = rc.getConviction();
 		cooldownTurns = rc.getCooldownTurns();
 		influence = rc.getInfluence();
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
+		// this.xOffset = myECLoc.x - currLoc.x;
+		// this.yOffset = myECLoc.y - currLoc.y;
 		// message = comms.checkmessage()
+		comms.updateCurrLoc(currLoc);
 		nav.updateCurrLoc(currLoc);
 	}
 
@@ -97,6 +105,10 @@ public class Robot {
 
 	public boolean coinFlip() {
 		return Math.random() > 0.5;
+	}
+
+	public boolean coinFlip(double percentage) {
+		return Math.random() > (1 - percentage);
 	}
 
 	public Direction randomDirection() {
