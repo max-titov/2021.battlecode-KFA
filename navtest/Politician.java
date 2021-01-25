@@ -9,6 +9,7 @@ public class Politician extends Robot {
 	 */
 	public final int HERDER_POLITICIAN = 1;
 	public final int CAPTURER_POLITICIAN = 2;
+	public final int WANDERER_POLITICIAN = 3;
 
 	public static final int SLANDERER_FLAG = 934245;
 
@@ -20,6 +21,7 @@ public class Politician extends Robot {
 	public RobotInfo[] alliedBots;
 	public RobotInfo[] neutralBots;
 	public RobotInfo[] robotsInEmpowerMax;
+	public MapLocation mainTargetLoc = new MapLocation(26572, 23918);
 
 	public boolean clockwise = true; // what direction the politician will be circling the slanderer group
 
@@ -28,10 +30,12 @@ public class Politician extends Robot {
 		if (coinFlip()) {
 			clockwise = false;
 		}
-		if (conviction == 50) {
+		if (conviction%5==1) {
 			politicianType = CAPTURER_POLITICIAN;
-		} else {
+		} else if (conviction == 18){ //TODO: make global variable after merging with sprint player
 			politicianType = HERDER_POLITICIAN;
+		} else {
+			politicianType = WANDERER_POLITICIAN;
 		}
 	}
 
@@ -49,6 +53,9 @@ public class Politician extends Robot {
 				break;
 			case CAPTURER_POLITICIAN:
 				capturerPolitician();
+				break;
+			case WANDERER_POLITICIAN:
+				wandererPolitician();
 				break;
 		}
 	}
@@ -98,6 +105,37 @@ public class Politician extends Robot {
 	}
 
 	public void capturerPolitician() throws GameActionException {
+		if(mainTargetLoc==null){
+			politicianType=WANDERER_POLITICIAN;
+			nav.simpleExploration();
+			return;
+		}
+
+		if(rc.canSenseLocation(mainTargetLoc)){
+			RobotInfo mainTargetInfo = rc.senseRobotAtLocation(mainTargetLoc);
+			//if the target is no longer an enemy or neutral ec
+			if(mainTargetInfo.team.equals(myTeam) && mainTargetInfo.type.equals(RobotType.ENLIGHTENMENT_CENTER)){
+				politicianType=WANDERER_POLITICIAN;
+				nav.simpleExploration();
+				return;
+			}
+		}
+
+		boolean foundEC = lookForECsToCapture();
+		
+		if (!foundEC) {
+			nav.tryMoveToTarget(mainTargetLoc);
+		}
+	}
+
+	public void wandererPolitician() throws GameActionException {
+		boolean foundEC = lookForECsToCapture();
+		if (!foundEC) {
+			nav.simpleExploration();
+		}
+	}
+
+	public boolean lookForECsToCapture() throws GameActionException {
 		int enemyBotsLen = enemyBots.length;
 		RobotInfo target = null;
 		for (int i = 0; i < enemyBotsLen; i++) {
@@ -115,8 +153,9 @@ public class Politician extends Robot {
 		}
 		if (target != null) {
 			targetUnit(target);
+			return true;
 		} else {
-			nav.simpleExploration();
+			return false;
 		}
 	}
 

@@ -22,7 +22,7 @@ public class EnlightenmentCenter extends Robot {
 			Direction dir = nav.directions[i];
 			if (rc.canBuildRobot(toBuild, dir, influence)) {
 				if(toBuild.equals(RobotType.POLITICIAN)){
-					rc.buildRobot(toBuild, dir, 16);
+					rc.buildRobot(toBuild, dir, 61);
 				}
 				else{
 					rc.buildRobot(toBuild, dir, 41);
