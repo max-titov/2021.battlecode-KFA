@@ -74,6 +74,9 @@ public class EnlightenmentCenter extends Robot {
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		checkFlags();
+		if (cooldownTurns >= 1) {
+			return;
+		}
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
 			// System.out.println("\nIn Initial Build Cycle");
 			// for (int i = 0; i < initialBuildCycle.length; i++) {
@@ -304,9 +307,8 @@ public class EnlightenmentCenter extends Robot {
 			if (bu.type.equals(RobotType.SLANDERER) || bu.type.equals(RobotType.POLITICIAN)) {
 				multiplier = influence / 100;
 			}
-			if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.05)) {
+			if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.2)) {
 				multiplier = 100;
-				System.out.println("SPAWNED BIG BOI");
 			}
 		}
 		Direction dirToBuild = dirToBuild(bu);
