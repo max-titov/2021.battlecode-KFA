@@ -1,13 +1,13 @@
-package navtest;
+package muckattack;
 
 import battlecode.common.*;
 
 public class EnlightenmentCenter extends Robot {
 
 	boolean created = false;
-	int influence = 24;
+	int influence = 1;
 
-	static final RobotType[] spawnableRobot = { RobotType.POLITICIAN, RobotType.SLANDERER };
+	static final RobotType[] spawnableRobot = { RobotType.MUCKRAKER };
 
 
 	public EnlightenmentCenter(RobotController rc) throws GameActionException {
@@ -17,17 +17,9 @@ public class EnlightenmentCenter extends Robot {
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		RobotType toBuild = randomSpawnableRobotType();
-		//nav.randomDirection();
-		for(int i = 0; i < 8; i++){
-			Direction dir = nav.directions[i];
-			if (rc.canBuildRobot(toBuild, dir, influence)) {
-				if(toBuild.equals(RobotType.POLITICIAN)){
-					rc.buildRobot(toBuild, dir, 16);
-				}
-				else{
-					rc.buildRobot(toBuild, dir, 41);
-				}
-			}
+		Direction dir = nav.randomDirection();
+		if (rc.canBuildRobot(toBuild, dir, influence)) {
+			rc.buildRobot(toBuild, dir, influence);
 		}
 	}
 

@@ -20,7 +20,7 @@ public class Politician extends Robot {
 		 * (tryMove(randomDirection())) System.out.println("I moved!");
 		 */
 		System.out.println("Attempting to set a flag");
-		comm.createFoundECMessage(this.myTeam, 2, 16, 16);
+		comm.sendFoundECMessage(this.myTeam, 2, new MapLocation(16, 16));
 
 	}
 

@@ -1,4 +1,4 @@
-package sprintplayer;
+package muckattack;
 
 import battlecode.common.*;
 

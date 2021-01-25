@@ -27,7 +27,7 @@ public class EnlightenmentCenter extends Robot {
 			this.spawnedBotID = spawnedBot.getID();
 		}
 		if(rc.canGetFlag(spawnedBotID)){
-			int[] commsTest = comm.readECMessage(rc.getFlag(spawnedBotID));
+			int[] commsTest = comm.readFoundECMessage(rc.getFlag(spawnedBotID));
 			System.out.println(Arrays.toString(commsTest));
 		}
 		turn += 1;

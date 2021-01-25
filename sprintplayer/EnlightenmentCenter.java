@@ -89,14 +89,14 @@ public class EnlightenmentCenter extends Robot {
 		myPrevVotes = myVotes;
 	}
 
-	public void checkFlags() {
-	for (int i = 0; i < numOfRobotsCreated; i++) {
-	int flagMessage = rc.getFlag(robotIDs[i]);
-	switch (flagMessage) {
-	case
-	}
-	}
-	}
+	// public void checkFlags() {
+	// for (int i = 0; i < numOfRobotsCreated; i++) {
+	// int flagMessage = rc.getFlag(robotIDs[i]);
+	// switch (flagMessage) {
+	// case
+	// }
+	// }
+	// }
 
 	public int getIndexOfID(int id) {
 		for (int i = 0; i < numOfRobotsCreated; i++) {
