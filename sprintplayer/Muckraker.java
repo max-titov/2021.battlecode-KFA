@@ -6,7 +6,7 @@ public class Muckraker extends Robot {
 	/**
 	 * Constants
 	 */
-	public final int ROUND_TO_START_HARASS = 150;
+	public final int ROUND_TO_START_HARASS = 250;
 	public final int EXPLORER_MUCKRAKER = 1;
 	public final int HARASS_MUCKRAKER = 2;
 	public final int BOUNCE_EXPLORER = 1;

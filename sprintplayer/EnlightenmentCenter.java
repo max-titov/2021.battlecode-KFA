@@ -64,7 +64,7 @@ public class EnlightenmentCenter extends Robot {
 		super(rc);
 		robotIDs = new int[NUM_OF_UNITS_TO_TRACK];
 		enemyECLocs = new MapLocation[12];
-		enemyECsIndexForAttacks=0;
+		enemyECsIndexForAttacks = 0;
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
 		S130 = new BuildUnit(RobotType.SLANDERER, 130);
@@ -82,9 +82,9 @@ public class EnlightenmentCenter extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		if(roundNum%50==0){
+		if (roundNum % 50 == 0) {
 			neutralECLocs = new MapLocation[6];
-			neutralECsIndex=0;
+			neutralECsIndex = 0;
 		}
 		checkFlags();
 		if (cooldownTurns >= 1) {
@@ -118,39 +118,39 @@ public class EnlightenmentCenter extends Robot {
 			buildCycleUnit();
 		}
 
-		if (roundNum-150>=0 && roundNum % 50==0){
+		if (roundNum - 200 >= 0 && roundNum % 50 == 0) {
 			sendOutAttackMessage();
 		}
 
-		if(roundNum>500){
+		if (roundNum > 500) {
 			vote();
 		}
 	}
 
 	public void vote() throws GameActionException {
 		int currentVotes = rc.getTeamVotes();
-		if (currentVotes == twoRoundsAgoVoteCount){
+		if (currentVotes == twoRoundsAgoVoteCount) {
 			currentVoteAmountToIncreaseBy++;
 		}
-		if (currentVotes == lastRoundVoteCount){
-			currentVoteAmount+=currentVoteAmountToIncreaseBy;
+		if (currentVotes == lastRoundVoteCount) {
+			currentVoteAmount += currentVoteAmountToIncreaseBy;
 		}
-		if(rc.canBid(currentVoteAmount)){
+		if (rc.canBid(currentVoteAmount)) {
 			rc.bid(currentVoteAmount);
 		}
-		twoRoundsAgoVoteCount=lastRoundVoteCount;
-		lastRoundVoteCount=currentVotes;
+		twoRoundsAgoVoteCount = lastRoundVoteCount;
+		lastRoundVoteCount = currentVotes;
 	}
 
 	public void sendOutAttackMessage() throws GameActionException {
-		MapLocation ECToAttack=null;
-		for(int i = 0; i<enemyECLocs.length;i++){
-			ECToAttack = enemyECLocs[(enemyECsIndexForAttacks+i)%enemyECLocs.length];
-			if(ECToAttack!=null){
+		MapLocation ECToAttack = null;
+		for (int i = 0; i < enemyECLocs.length; i++) {
+			ECToAttack = enemyECLocs[(enemyECsIndexForAttacks + i) % enemyECLocs.length];
+			if (ECToAttack != null) {
 				break;
 			}
-		} 
-		if(ECToAttack==null){
+		}
+		if (ECToAttack == null) {
 			return;
 		}
 		comms.sendFoundECMessage(ECToAttack.x, ECToAttack.y, opponentTeam, 0);
