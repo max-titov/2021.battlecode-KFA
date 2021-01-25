@@ -355,13 +355,10 @@ public class EnlightenmentCenter extends Robot {
 			if (slandererDirIndex == slandererDirs.length) {
 				slandererDirIndex = 0;
 			}
-			while (rc.isLocationOccupied(currLoc.add(dirToBuild))) {
-				dirToBuild = slandererDirs[slandererDirIndex++];
-				if (slandererDirIndex == slandererDirs.length) {
-					slandererDirIndex = 0;
-				}
+			while (!rc.onTheMap(currLoc.add(dirToBuild)) || rc.isLocationOccupied(currLoc.add(dirToBuild))) {
+				dirToBuild = dirToBuild.rotateRight();
 			}
-		} else if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITCIAN_INFLUENCE) {
+		} else if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
 			dirToBuild = slandererDirs[(slandererDirIndex - 1 + slandererDirs.length) % slandererDirs.length];
 			while (!rc.onTheMap(currLoc.add(dirToBuild)) || rc.isLocationOccupied(currLoc.add(dirToBuild))) {
 				dirToBuild = dirToBuild.rotateRight();
