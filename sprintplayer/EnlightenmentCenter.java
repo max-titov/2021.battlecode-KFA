@@ -106,7 +106,7 @@ public class EnlightenmentCenter extends Robot {
 		}
 
 		int topDir = centerDir - 1;
-		int lowDIr = centerDir + 1;
+		int lowDir = centerDir + 1;
 		Direction[] retDirections = new Direction[] { nav.edgeTypeToDir(topDir % directions.length),
 				nav.edgeTypeToDir(centerDir % directions.length), nav.edgeTypeToDir(lowDir % directions.length) };
 		return retDirections;
