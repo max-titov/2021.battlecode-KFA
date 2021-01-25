@@ -63,9 +63,10 @@ public class EnlightenmentCenter extends Robot {
 		BuildUnit S130 = new BuildUnit(RobotType.SLANDERER, 130);
 		BuildUnit M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
 		BuildUnit P18 = new BuildUnit(RobotType.POLITICIAN, 18);
-		BuildUnit S41 = new BuiltUnit(RobotType.SLANDERER, 41);
-		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41};
-		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1};
+		BuildUnit S41 = new BuildUnit(RobotType.SLANDERER, 41);
+		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41,
+				P18, S41, S41, P18, S41 };
+		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		slandererDirs = getSlandererDirs();
 		adjDirections = checkAdjTiles();
@@ -77,52 +78,51 @@ public class EnlightenmentCenter extends Robot {
 
 	}
 
-	public Direction[] getSlanderDirs() throws GameActionException {
+	public Direction[] getSlandererDirs() throws GameActionException {
 		int[] edges = nav.lookForEdges();
 		int edgeType = edges[0];
 		edgeType += 8;
 		int centerDir = 0;
 		MapLocation edgeLoc = new MapLocation(edges[1], edges[2]);
-		//Cardinal Directions
-		if(edgeType % 2 == 0){
-			if(currLoc.distanceSquaredTo(edgeLoc) >= 16){
+		// Cardinal Directions
+		if (edgeType % 2 == 0) {
+			if (currLoc.distanceSquaredTo(edgeLoc) >= 16) {
 				centerDir = edgeType;
 			} else {
 				centerDir = (edgeType + 2) % directions.length;
 			}
 		}
-		//Corners 
+		// Corners
 		else {
 			int xEdge = edgeType + 1;
 			int yEdge = edgeType - 1;
-			if(Math.abs(currLoc.x - edgeLoc.x) < 4){
+			if (Math.abs(currLoc.x - edgeLoc.x) < 4) {
 				xEdge += 4;
 			}
-			if(Math.abs(currLoc.y - edgeLoc.y) < 4){
+			if (Math.abs(currLoc.y - edgeLoc.y) < 4) {
 				yEdge += 4;
 			}
-			centerDir = (xEdge + yEdge)/2;
+			centerDir = (xEdge + yEdge) / 2;
 		}
 
 		int topDir = centerDir - 1;
 		int lowDIr = centerDir + 1;
-		Direction[] retDirections = new Direction[] {nav.edgeTypeToDir(topDir % directions.length), nav.edgeTypeToDir(centerDir % directions.length), nav.edgeTypeToDir(lowDir % directions.length)};
+		Direction[] retDirections = new Direction[] { nav.edgeTypeToDir(topDir % directions.length),
+				nav.edgeTypeToDir(centerDir % directions.length), nav.edgeTypeToDir(lowDir % directions.length) };
 		return retDirections;
 	}
 
 	public Direction[] checkAdjTiles() throws GameActionException {
 		int existCount = 0;
-		int[] tempDirs = new int[8];
-		for(i = 0; i < directions.length;i++){
-			if(rc.onTheMap(rc.adjacentLocation(directions[i])) == true){
-				tempDirs[i] = 1;
+		for (int i = 0; i < directions.length; i++) {
+			if (rc.onTheMap(rc.adjacentLocation(directions[i])) == true) {
 				existCount++;
 			}
 		}
 		Direction[] clearDirs = new Direction[existCount];
 		int tempIndex = 0;
-		for(i = 0; i< directions.length;i++){
-			if(tempDirs[i] == 1){
+		for (int i = 0; i < directions.length; i++) {
+			if (rc.onTheMap(rc.adjacentLocation(directions[i])) == true) {
 				clearDirs[tempIndex] = directions[i];
 				tempIndex++;
 			}
