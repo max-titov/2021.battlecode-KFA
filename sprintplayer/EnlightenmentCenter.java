@@ -27,6 +27,7 @@ public class EnlightenmentCenter extends Robot {
 	public int westX;
 	public int mapWidth;
 	public int mapHeight;
+	public Direction[] adjDirections;
 	// EC Locations
 	public MapLocation[] enemyECLocs;
 	public int enemyECsIndex;
@@ -56,15 +57,38 @@ public class EnlightenmentCenter extends Robot {
 		neutralECLocs = new MapLocation[6];
 		BuildUnit S130 = new BuildUnit(RobotType.SLANDERER, 130);
 		BuildUnit M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
-		initialBuildCycle = new BuildUnit[] { S130, M1 };
-		regularBuildCycle = new BuildUnit[REGULAR_BUILD_CYCLE_SIZE];
+		BuildUnit P18 = new BuildUnit(RobotType.POLITICIAN, 18);
+		BuildUnit S41 = new BuiltUnit(RobotType.SLANDERER, 41);
+		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41};
+		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1};
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
+		adjDirections = checkAdjTiles();
 	}
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		checkFlags();
 
+	}
+
+	public Direction[] checkAdjTiles() throws GameActionException {
+		int existCount = 0;
+		int[] tempDirs = new int[8];
+		for(i = 0; i < directions.length;i++){
+			if(rc.onTheMap(rc.adjacentLocation(directions[i])) == true){
+				tempDirs[i] = 1;
+				existCount++;
+			}
+		}
+		Direction[] clearDirs = new Direction[existCount];
+		int tempIndex = 0;
+		for(i = 0; i< directions.length;i++){
+			if(tempDirs[i] == 1){
+				clearDirs[tempIndex] = directions[i];
+				tempIndex++;
+			}
+		}
+		return clearDirs;
 	}
 
 	public void checkFlags() throws GameActionException {
