@@ -7,7 +7,9 @@ public class EnlightenmentCenter extends Robot {
 	 * Constants
 	 */
 	public static final int NUM_OF_UNITS_TO_TRACK = 100;
-	public static final int BUILD_QUEUE_SIZE = 12;
+	public static final int PRIORITY_BUILD_QUEUE_SIZE = 20;
+	public static final int REGULAR_BUILD_CYCLE_SIZE = 20;
+
 	// messages
 	// public final int EDGE_MESSAGE = ;
 
@@ -33,9 +35,11 @@ public class EnlightenmentCenter extends Robot {
 	public MapLocation[] neutralECLocs;
 	public int neutralECsIndex;
 	// Build Queues
-	public boolean initialBuildQueueDone;
+	public boolean initialBuildCycleDone;
 	public BuildUnit[] initialBuildCycle;
+	public int initialBuildCycleIndex;
 	public BuildUnit[] regularBuildCycle;
+	public int regularBuildCycleIndex;
 	public BuildUnit[] priorityBuildQueue;
 
 	/**
@@ -50,26 +54,17 @@ public class EnlightenmentCenter extends Robot {
 		enemyECLocs = new MapLocation[12];
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
-		initialBuildCycle = new BuildUnit[BUILD_QUEUE_SIZE];
-		regularBuildCycle = new BuildUnit[BUILD_QUEUE_SIZE];
-		priorityBuildQueue = new BuildUnit[BUILD_QUEUE_SIZE];
+		BuildUnit S130 = new BuildUnit(RobotType.SLANDERER, 130);
+		BuildUnit M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
+		initialBuildCycle = new BuildUnit[] { S130, M1 };
+		regularBuildCycle = new BuildUnit[REGULAR_BUILD_CYCLE_SIZE];
+		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 	}
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		checkFlags();
-		if (!buildUnit(priorityBuildQueue)) {
-			if (initialBuildQueueDone) {
-				buildUnit(regularBuildQueue);
-			} else {
-				if (!buildUnit(initialBuildQueue)) {
-					buildMuckraker();
-				}
-				if (initialBuildQueue[0] == null) {
-					initialBuildQueueDone = true;
-				}
-			}
-		}
+
 	}
 
 	public void checkFlags() throws GameActionException {
@@ -102,7 +97,7 @@ public class EnlightenmentCenter extends Robot {
 							if (!checkInArray(neutralECLocs, toAdd)) {
 								neutralECLocs[neutralECsIndex++] = toAdd;
 								buildQueueAdd(priorityBuildQueue, new BuildUnit(RobotType.POLITICIAN,
-										comms.convIntRangeToMaxConv(info[2]), currLoc.directionTo(toAdd), toAdd));
+										comms.convIntRangeToMaxConv(info[2]), toAdd));
 							}
 							break;
 					}
@@ -196,7 +191,7 @@ public class EnlightenmentCenter extends Robot {
 		}
 	}
 
-	public boolean buildUnit(BuildUnit[] buildQueue) throws GameActionException {
+	public boolean buildQueueUnit(BuildUnit[] buildQueue) throws GameActionException {
 		if (buildQueue[0] == null) {
 			return false;
 		}
@@ -208,10 +203,42 @@ public class EnlightenmentCenter extends Robot {
 		return false;
 	}
 
-	public void buildMuckraker() throws GameActionException {
+	public boolean buildCycleUnit(BuildUnit[] buildCycle) throws GameActionException {
+		if (buildCycle == initialBuildCycle) {
+			if (rc.canBuildRobot(initialBuildCycle[initialBuildCycleIndex].type,
+					initialBuildCycle[initialBuildCycleIndex].dirToBuild,
+					initialBuildCycle[initialBuildCycleIndex].influence)) {
+				rc.buildRobot(initialBuildCycle[initialBuildCycleIndex].type,
+						initialBuildCycle[initialBuildCycleIndex].dirToBuild,
+						initialBuildCycle[initialBuildCycleIndex].influence);
+				initialBuildCycleIndex++;
+				return true;
+			} else {
+				return buildMuckraker();
+			}
+		}
+		if (buildCycle == regularBuildCycle) {
+			if (rc.canBuildRobot(regularBuildCycle[regularBuildCycleIndex].type,
+					regularBuildCycle[regularBuildCycleIndex].dirToBuild,
+					regularBuildCycle[regularBuildCycleIndex].influence)) {
+				rc.buildRobot(regularBuildCycle[regularBuildCycleIndex].type,
+						regularBuildCycle[regularBuildCycleIndex].dirToBuild,
+						regularBuildCycle[regularBuildCycleIndex].influence);
+				regularBuildCycleIndex++;
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	public boolean buildMuckraker() throws GameActionException {
 		if (rc.canBuildRobot(RobotType.MUCKRAKER, directions[muckrakerDirIndex], 1)) {
 			rc.buildRobot(RobotType.MUCKRAKER, directions[muckrakerDirIndex++], 1);
+			return true;
 		}
+		return false;
 	}
 
 	public boolean checkInArray(MapLocation[] arr, MapLocation toCheck) {
