@@ -24,6 +24,7 @@ public class EnlightenmentCenter extends Robot {
 	// EC Locations
 	public MapLocation[] enemyECLocs;
 	public int enemyECsIndex;
+	public int enemyECsIndexForAttacks;
 	public MapLocation[] fellowECLocs;
 	public int fellowECsIndex;
 	public MapLocation[] neutralECLocs;
@@ -45,7 +46,13 @@ public class EnlightenmentCenter extends Robot {
 	BuildUnit S130;
 	BuildUnit M1;
 	BuildUnit P18;
+	BuildUnit P35;
 	BuildUnit S41;
+
+	int twoRoundsAgoVoteCount = -2;
+	int lastRoundVoteCount = -1;
+	int currentVoteAmount = 1;
+	int currentVoteAmountToIncreaseBy = 1;
 
 	/**
 	 * Constructor
@@ -57,15 +64,17 @@ public class EnlightenmentCenter extends Robot {
 		super(rc);
 		robotIDs = new int[NUM_OF_UNITS_TO_TRACK];
 		enemyECLocs = new MapLocation[12];
+		enemyECsIndexForAttacks=0;
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
 		S130 = new BuildUnit(RobotType.SLANDERER, 130);
 		M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
 		P18 = new BuildUnit(RobotType.POLITICIAN, 18);
+		P35 = new BuildUnit(RobotType.POLITICIAN, 35);
 		S41 = new BuildUnit(RobotType.SLANDERER, 41);
 		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41,
 				P18, S41, S41, P18, S41 };
-		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1 };
+		regularBuildCycle = new BuildUnit[] { P35, S41, M1, P35, S41, M1, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		availableDirs = checkAdjTiles();
 		slandererDirs = getSlandererDirs();
@@ -73,6 +82,10 @@ public class EnlightenmentCenter extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
+		if(roundNum%50==0){
+			neutralECLocs = new MapLocation[6];
+			neutralECsIndex=0;
+		}
 		checkFlags();
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
 			// System.out.println("\nIn Initial Build Cycle");
@@ -101,6 +114,44 @@ public class EnlightenmentCenter extends Robot {
 			// }
 			buildCycleUnit();
 		}
+
+		if (roundNum-150>=0 && roundNum % 50==0){
+			sendOutAttackMessage();
+		}
+
+		if(roundNum>500){
+			vote();
+		}
+	}
+
+	public void vote() throws GameActionException {
+		int currentVotes = rc.getTeamVotes();
+		if (currentVotes == twoRoundsAgoVoteCount){
+			currentVoteAmountToIncreaseBy++;
+		}
+		if (currentVotes == lastRoundVoteCount){
+			currentVoteAmount+=currentVoteAmountToIncreaseBy;
+		}
+		if(rc.canBid(currentVoteAmount)){
+			rc.bid(currentVoteAmount);
+		}
+		twoRoundsAgoVoteCount=lastRoundVoteCount;
+		lastRoundVoteCount=currentVotes;
+	}
+
+	public void sendOutAttackMessage() throws GameActionException {
+		MapLocation ECToAttack=null;
+		for(int i = 0; i<enemyECLocs.length;i++){
+			ECToAttack = enemyECLocs[(enemyECsIndexForAttacks+i)%enemyECLocs.length];
+			if(ECToAttack!=null){
+				break;
+			}
+		} 
+		if(ECToAttack==null){
+			return;
+		}
+		comms.sendFoundECMessage(ECToAttack.x, ECToAttack.y, opponentTeam, 0);
+		enemyECsIndexForAttacks++;
 	}
 
 	public Direction[] getSlandererDirs() throws GameActionException {

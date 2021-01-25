@@ -166,6 +166,7 @@ public class Politician extends Robot {
 
 		int foundECToTarget = readECMessage();
 		if(foundECToTarget==Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam)){
+			System.out.println("Switched to Capturer. Target: ("+mainTargetLoc.x+","+mainTargetLoc.y+")");
 			politicianType=CAPTURER_POLITICIAN;
 			capturerPolitician();
 		}
