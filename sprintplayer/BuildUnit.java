@@ -16,6 +16,7 @@ public class BuildUnit {
 		this.type = type;
 		this.conviction = conviction;
 		this.targetECLoc = targetECLoc;
+		this.targetECTeam = targetECTeam;
 	}
 
 	public BuildUnit(RobotType type, int conviction) {

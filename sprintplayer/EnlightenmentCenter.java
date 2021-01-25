@@ -74,52 +74,31 @@ public class EnlightenmentCenter extends Robot {
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		checkFlags();
-		// for (int i = 0; i < initialBuildCycle.length; i++) {
-		// if (i == initialBuildCycleIndex) {
-		// System.out.println("Initial Build Cycle: *" + initialBuildCycle[i].type +
-		// "*");
-		// continue;
-		// }
-		// System.out.println("Initial Build Cycle: " + initialBuildCycle[i].type);
-		// }
-		// for (int i = 0; i < regularBuildCycle.length; i++) {
-		// if (i == regularBuildCycleIndex) {
-		// System.out.println("Regular Build Cycle: *" + regularBuildCycle[i].type +
-		// "*");
-		// continue;
-		// }
-		// System.out.println("Regular Build Cycle: " + regularBuildCycle[i].type);
-		// }
-		// for (int i = 0; i < priorityBuildQueue.length; i++) {
-		// if (priorityBuildQueue[i] != null) {
-		// System.out.println("Priority Build Queue: " + priorityBuildQueue[i].type);
-		// }
-		// }
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
-			System.out.println("\nIn Initial Build Cycle");
-			for (int i = 0; i < initialBuildCycle.length; i++) {
-				if (i == initialBuildCycleIndex) {
-					System.out.println("*" + initialBuildCycle[i] + "*");
-					continue;
-				}
-				System.out.println(initialBuildCycle[i]);
-			}
+			// System.out.println("\nIn Initial Build Cycle");
+			// for (int i = 0; i < initialBuildCycle.length; i++) {
+			// if (i == initialBuildCycleIndex) {
+			// System.out.println("*" + initialBuildCycle[i] + "*");
+			// continue;
+			// }
+			// System.out.println(initialBuildCycle[i]);
+			// }
 			buildCycleUnit();
 		} else if (priorityBuildQueue[0] != null) {
-			System.out.println("\nIn Priority Build Queue");
-			for (int i = 0; i < priorityBuildQueue.length; i++) {
-				System.out.println(priorityBuildQueue[i]);
-			}
+			// System.out.println("\nIn Priority Build Queue");
+			// for (int i = 0; i < priorityBuildQueue.length; i++) {
+			// System.out.println(priorityBuildQueue[i]);
+			// }
 			buildPriorityQueueUnit();
 		} else {
-			System.out.println("\nIn Regular Build Cycle");
-			for (int i = 0; i < regularBuildCycle.length; i++) {
-				if (i == regularBuildCycleIndex) {
-					System.out.println("*" + regularBuildCycle[i] + "*");
-					continue;
-				}
-				System.out.println(regularBuildCycle[i]);
-			}
+			// System.out.println("\nIn Regular Build Cycle");
+			// for (int i = 0; i < regularBuildCycle.length; i++) {
+			// if (i == regularBuildCycleIndex) {
+			// System.out.println("*" + regularBuildCycle[i] + "*");
+			// continue;
+			// }
+			// System.out.println(regularBuildCycle[i]);
+			// }
 			buildCycleUnit();
 		}
 	}
@@ -208,7 +187,7 @@ public class EnlightenmentCenter extends Robot {
 								neutralECLocs[neutralECsIndex++] = toAdd;
 								buildQueueAdd(priorityBuildQueue, new BuildUnit(RobotType.POLITICIAN,
 										comms.convIntRangeToMaxConv(info[2]) + 11, toAdd, Team.NEUTRAL));
-								System.out.println("Added to Priority Build Queue");
+								// System.out.println("Added to Priority Build Queue");
 							}
 							break;
 					}
@@ -317,14 +296,22 @@ public class EnlightenmentCenter extends Robot {
 
 	public void buildCycleUnit() throws GameActionException {
 		BuildUnit bu;
+		int multiplier = 1;
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
 			bu = initialBuildCycle[initialBuildCycleIndex];
 		} else {
 			bu = regularBuildCycle[regularBuildCycleIndex];
+			if (bu.type.equals(RobotType.SLANDERER) || bu.type.equals(RobotType.POLITICIAN)) {
+				multiplier = influence / 100;
+			}
+			if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.05)) {
+				multiplier = 100;
+				System.out.println("SPAWNED BIG BOI");
+			}
 		}
 		Direction dirToBuild = dirToBuild(bu);
-		if (rc.canBuildRobot(bu.type, dirToBuild, bu.conviction)) {
-			rc.buildRobot(bu.type, dirToBuild, bu.conviction);
+		if (rc.canBuildRobot(bu.type, dirToBuild, bu.conviction * multiplier)) {
+			rc.buildRobot(bu.type, dirToBuild, bu.conviction * multiplier);
 			addID(dirToBuild);
 			if (initialBuildCycleIndex < initialBuildCycle.length) {
 				initialBuildCycleIndex++;
@@ -358,7 +345,8 @@ public class EnlightenmentCenter extends Robot {
 			while (!rc.onTheMap(currLoc.add(dirToBuild)) || rc.isLocationOccupied(currLoc.add(dirToBuild))) {
 				dirToBuild = dirToBuild.rotateRight();
 			}
-		} else if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
+		} else if (bu.type.equals(RobotType.POLITICIAN)
+				&& (bu.conviction % Politician.HERDER_POLITICIAN_INFLUENCE) == 0) {
 			dirToBuild = slandererDirs[(slandererDirIndex - 1 + slandererDirs.length) % slandererDirs.length];
 			while (!rc.onTheMap(currLoc.add(dirToBuild)) || rc.isLocationOccupied(currLoc.add(dirToBuild))) {
 				dirToBuild = dirToBuild.rotateRight();

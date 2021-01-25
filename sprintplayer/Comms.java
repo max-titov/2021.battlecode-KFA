@@ -60,7 +60,7 @@ public class Comms {
 		if (rc.canGetFlag(robotID)) {
 			return rc.getFlag(robotID);
 		} else {
-			System.out.println("Failed to get flag");
+			// System.out.println("Failed to get flag");
 			return -1;
 		}
 	}
