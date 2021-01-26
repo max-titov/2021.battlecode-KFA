@@ -89,6 +89,9 @@ public class EnlightenmentCenter extends Robot {
 			vote();
 		}
 		checkFlags();
+		if (roundNum - 50 >= 0 && roundNum % 50 == 0) {
+			sendOutAttackMessage();
+		}
 		if (cooldownTurns >= 1) {
 			return;
 		}
@@ -119,9 +122,6 @@ public class EnlightenmentCenter extends Robot {
 			}
 			buildCycleUnit();
 		}
-		if (roundNum - 200 >= 0 && roundNum % 50 == 0) {
-			sendOutAttackMessage();
-		}
 	}
 
 	public void vote() throws GameActionException {
@@ -150,6 +150,7 @@ public class EnlightenmentCenter extends Robot {
 		if (ECToAttack == null) {
 			return;
 		}
+		System.out.println("attack EC " + enemyECsIndexForAttacks);
 		comms.sendFoundECMessage(ECToAttack.x, ECToAttack.y, opponentTeam, 0);
 		enemyECsIndexForAttacks++;
 	}
