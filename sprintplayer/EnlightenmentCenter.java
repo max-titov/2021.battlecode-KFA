@@ -74,7 +74,7 @@ public class EnlightenmentCenter extends Robot {
 		S41 = new BuildUnit(RobotType.SLANDERER, 41);
 		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41,
 				P18, S41, S41, P18, S41 };
-		regularBuildCycle = new BuildUnit[] { P35, S41, M1, P35, S41, M1, P35 };
+		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		availableDirs = checkAdjTiles();
 		slandererDirs = getSlandererDirs();
@@ -85,11 +85,10 @@ public class EnlightenmentCenter extends Robot {
 		if (roundNum > 500) {
 			vote();
 		}
-		if (roundNum % 50 == 0) {
-			neutralECLocs = new MapLocation[6];
-			neutralECsIndex = 0;
-		}
 		checkFlags();
+		if (roundNum - 50 >= 0 && roundNum % 50 == 0) {
+			sendOutAttackMessage();
+		}
 		if (cooldownTurns >= 1) {
 			return;
 		}
@@ -120,10 +119,6 @@ public class EnlightenmentCenter extends Robot {
 			// }
 			buildCycleUnit();
 		}
-
-		if (roundNum - 200 >= 0 && roundNum % 50 == 0) {
-			sendOutAttackMessage();
-		}
 	}
 
 	public void vote() throws GameActionException {
@@ -152,6 +147,7 @@ public class EnlightenmentCenter extends Robot {
 		if (ECToAttack == null) {
 			return;
 		}
+		System.out.println("attack EC "+enemyECsIndexForAttacks);
 		comms.sendFoundECMessage(ECToAttack.x, ECToAttack.y, opponentTeam, 0);
 		enemyECsIndexForAttacks++;
 	}

@@ -139,6 +139,8 @@ public class Politician extends Robot {
 			return;
 		}
 
+		rc.setIndicatorDot(mainTargetLoc, 255, 0, 0);
+
 		if (rc.canSenseLocation(mainTargetLoc)) {
 			RobotInfo mainTargetInfo = rc.senseRobotAtLocation(mainTargetLoc);
 			// if the target is no longer an enemy or neutral ec
