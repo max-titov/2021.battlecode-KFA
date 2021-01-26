@@ -82,6 +82,9 @@ public class EnlightenmentCenter extends Robot {
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
+		if (roundNum > 500) {
+			vote();
+		}
 		if (roundNum % 50 == 0) {
 			neutralECLocs = new MapLocation[6];
 			neutralECsIndex = 0;
@@ -120,10 +123,6 @@ public class EnlightenmentCenter extends Robot {
 
 		if (roundNum - 200 >= 0 && roundNum % 50 == 0) {
 			sendOutAttackMessage();
-		}
-
-		if (roundNum > 500) {
-			vote();
 		}
 	}
 
