@@ -96,11 +96,8 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public void explorerMuckraker() throws GameActionException {
-		findEC();
+		comms.dropFlag();
 		int[] edges = nav.lookForEdges();
-		if (edgeDetected) {
-			comms.dropFlag();
-		}
 		if (edges == null) {
 			edgeDetected = false;
 		} else if (edges[0] != lastEdgeType) {
@@ -123,6 +120,7 @@ public class Muckraker extends Robot {
 			lastEdgeType = edges[0];
 		}
 		nav.tryMoveToTarget(target);
+		findEC();
 	}
 
 	/**
