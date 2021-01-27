@@ -8,6 +8,7 @@ public class EnlightenmentCenter extends Robot {
 	 */
 	public static final int NUM_OF_UNITS_TO_TRACK = 100;
 	public static final int PRIORITY_BUILD_QUEUE_SIZE = 20;
+	public static final int ROUND_TO_START_ATTACK = 150;
 
 	/**
 	 * Attributes
@@ -98,7 +99,7 @@ public class EnlightenmentCenter extends Robot {
 			vote();
 		}
 		checkFlags();
-		if (roundNum - 50 >= 0 && roundNum % 50 == 0) {
+		if (roundNum - ROUND_TO_START_ATTACK >= 0 && roundNum % 50 == 0) {
 			sendOutAttackMessage();
 		} else if (getEnemyUnitsInArea()) {
 			comms.sendHelpMessage();

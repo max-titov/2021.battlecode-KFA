@@ -6,7 +6,6 @@ public class Muckraker extends Robot {
 	/**
 	 * Constants
 	 */
-	public final int ROUND_TO_START_HARASS = 250;
 	public final int EXPLORER_MUCKRAKER = 1;
 	public final int HARASS_MUCKRAKER = 2;
 	public final int BOUNCE_EXPLORER = 1;
@@ -49,10 +48,10 @@ public class Muckraker extends Robot {
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
 		muckrakerType = EXPLORER_MUCKRAKER;
 		target = getTargetRelativeEC();
-		if(coinFlip()){
-			clockwise=true;
+		if (coinFlip()) {
+			clockwise = true;
 		}
-		if (roundNum < ROUND_TO_START_HARASS) {
+		if (roundNum < EnlightenmentCenter.ROUND_TO_START_ATTACK) {
 			if (coinFlip()) {
 				explorerType = EDGE_EXPLORER;
 			} else {
@@ -76,7 +75,7 @@ public class Muckraker extends Robot {
 		int[] message = comms.readMessage(myECid);
 		if (message != null && message[0] == Comms.FOUND_EC && message[1] == 1) {
 			beginAttack = true;
-			if (enemyEC==null && coinFlip(.5)){
+			if (enemyEC == null && coinFlip(.5)) {
 				int targetXOffset = message[3];
 				int targetYOffset = message[4];
 				int targetX = myECLoc.x + targetXOffset;
@@ -91,8 +90,9 @@ public class Muckraker extends Robot {
 		if (exposeOnSight()) {
 			return;
 		}
-		//check if the enemy EC is no longer an enemy EC
-		if (enemyEC != null && rc.canSenseLocation(enemyEC) && !rc.senseRobotAtLocation(enemyEC).team.equals(opponentTeam)){
+		// check if the enemy EC is no longer an enemy EC
+		if (enemyEC != null && rc.canSenseLocation(enemyEC)
+				&& !rc.senseRobotAtLocation(enemyEC).team.equals(opponentTeam)) {
 			enemyEC = null;
 		}
 		if (beginAttack && enemyEC != null) {
@@ -147,8 +147,8 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public void harassMuckraker() throws GameActionException {
-		if(enemyEC==null){
-			muckrakerType=EXPLORER_MUCKRAKER;
+		if (enemyEC == null) {
+			muckrakerType = EXPLORER_MUCKRAKER;
 			explorerMuckraker();
 		}
 		// rc.setIndicatorDot(enemyEC, 0, 255, 255);
@@ -159,18 +159,19 @@ public class Muckraker extends Robot {
 		RobotInfo nearestPolitician = null;
 		for (int i = 0; i < alliedBotsLen; i++) {
 			RobotInfo ri = alliedBots[i];
-			if (ri.type.equals(RobotType.POLITICIAN) && currLoc.distanceSquaredTo(ri.location)<nearestPoliticianDist) {
+			if (ri.type.equals(RobotType.POLITICIAN)
+					&& currLoc.distanceSquaredTo(ri.location) < nearestPoliticianDist) {
 				nearestPolitician = ri;
-				nearestPoliticianDist=currLoc.distanceSquaredTo(ri.location);
+				nearestPoliticianDist = currLoc.distanceSquaredTo(ri.location);
 			}
 		}
-		if(nearestPolitician!=null && currLoc.isWithinDistanceSquared(enemyEC, 40)){
+		if (nearestPolitician != null && currLoc.isWithinDistanceSquared(enemyEC, 40)) {
 			nav.tryMoveToTarget(nearestPolitician.location.directionTo(currLoc));
-			// rc.setIndicatorLine(currLoc, currLoc.add(nearestPolitician.location.directionTo(currLoc)), 255, 0, 255);
+			// rc.setIndicatorLine(currLoc,
+			// currLoc.add(nearestPolitician.location.directionTo(currLoc)), 255, 0, 255);
 			// rc.setIndicatorDot(nearestPolitician.location, 255, 0, 255);
 			return;
 		}
-
 
 		int sqDistToEC = currLoc.distanceSquaredTo(enemyEC);
 		Direction dirToEC = currLoc.directionTo(enemyEC);
@@ -193,8 +194,10 @@ public class Muckraker extends Robot {
 		rc.setIndicatorLine(currLoc, currLoc.add(moveDir), 0, 255, 255);
 		nav.bugNav(moveDir);
 	}
+
 	/**
 	 * used when circling the enemy ec
+	 * 
 	 * @param dir
 	 * @return
 	 * @throws GameActionException
