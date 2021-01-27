@@ -245,7 +245,10 @@ public class Navigation {
 	 * @return
 	 */
 	public Direction relativeLocToEC() {
-		return myECLoc.directionTo(currLoc);
+		if (myECLoc!=null){
+			return myECLoc.directionTo(currLoc);
+		}
+		return randomDirection();
 	}
 
 	/**

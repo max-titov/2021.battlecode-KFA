@@ -50,6 +50,7 @@ public class EnlightenmentCenter extends Robot {
 	BuildUnit S41;
 	BuildUnit S63;
 	BuildUnit S85;
+	BuildUnit S107;
 	// Votes
 	int twoRoundsAgoVoteCount = -2;
 	int lastRoundVoteCount = -1;
@@ -71,7 +72,6 @@ public class EnlightenmentCenter extends Robot {
 		enemyECLocs = new MapLocation[12];
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
-		findNearbyECs();
 		S130 = new BuildUnit(RobotType.SLANDERER, 130);
 		M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
 		P18 = new BuildUnit(RobotType.POLITICIAN, 18);
@@ -79,15 +79,17 @@ public class EnlightenmentCenter extends Robot {
 		S41 = new BuildUnit(RobotType.SLANDERER, 41);
 		S63 = new BuildUnit(RobotType.SLANDERER, 63);
 		S85 = new BuildUnit(RobotType.SLANDERER, 85);
-		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S63, S85, P18, S85, S85,
-				P18, S85, S85, P18, S85, P18 };
-		regularBuildCycle = new BuildUnit[] { P18, S41, P35, M1, P35, S41, P35 };
+		S107 = new BuildUnit(RobotType.SLANDERER, 107);
+		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S85, S85, P18, S107, P18, S107,
+				P18, S107, P18, S107, P18 };
+		regularBuildCycle = new BuildUnit[] { P18, S41, P35, M1, P18, S41, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		availableDirs = checkAdjTiles();
 		slandererDirs = getSlandererDirs();
 		if (roundNum > 1) {
 			initialBuildCycleIndex = initialBuildCycle.length;
 		}
+		findNearbyECs();
 	}
 
 	public void takeTurn() throws GameActionException {
@@ -107,7 +109,7 @@ public class EnlightenmentCenter extends Robot {
 			sendOutAttackMessage();
 		} else if (getEnemyUnitsInArea()) {
 			comms.sendHelpMessage();
-			if (!priorityBuildQueue[0].equals(M1)) {
+			if (priorityBuildQueue[0] == null || !priorityBuildQueue[0].equals(M1)) {
 				buildQueueLineCut(M1);
 			}
 		}
@@ -115,30 +117,30 @@ public class EnlightenmentCenter extends Robot {
 			return;
 		}
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
-			// System.out.println("\nIn Initial Build Cycle");
-			// for (int i = 0; i < initialBuildCycle.length; i++) {
-			// if (i == initialBuildCycleIndex) {
-			// System.out.println("*" + initialBuildCycle[i] + "*");
-			// continue;
-			// }
-			// System.out.println(initialBuildCycle[i]);
-			// }
+			System.out.println("\nIn Initial Build Cycle");
+			for (int i = 0; i < initialBuildCycle.length; i++) {
+				if (i == initialBuildCycleIndex) {
+					System.out.println("*" + initialBuildCycle[i] + "*");
+					continue;
+				}
+				System.out.println(initialBuildCycle[i]);
+			}
 			buildCycleUnit();
 		} else if (priorityBuildQueue[0] != null) {
-			// System.out.println("\nIn Priority Build Queue");
-			// for (int i = 0; i < priorityBuildQueue.length; i++) {
-			// System.out.println(priorityBuildQueue[i]);
-			// }
+			System.out.println("\nIn Priority Build Queue");
+			for (int i = 0; i < priorityBuildQueue.length; i++) {
+			System.out.println(priorityBuildQueue[i]);
+			}
 			buildPriorityQueueUnit();
 		} else {
-			// System.out.println("\nIn Regular Build Cycle");
-			// for (int i = 0; i < regularBuildCycle.length; i++) {
-			// if (i == regularBuildCycleIndex) {
-			// System.out.println("*" + regularBuildCycle[i] + "*");
-			// continue;
-			// }
-			// System.out.println(regularBuildCycle[i]);
-			// }
+			System.out.println("\nIn Regular Build Cycle");
+			for (int i = 0; i < regularBuildCycle.length; i++) {
+			if (i == regularBuildCycleIndex) {
+			System.out.println("*" + regularBuildCycle[i] + "*");
+			continue;
+			}
+			System.out.println(regularBuildCycle[i]);
+			}
 			buildCycleUnit();
 		}
 	}
@@ -153,6 +155,10 @@ public class EnlightenmentCenter extends Robot {
 		}
 		if (rc.canBid(currentVoteAmount)) {
 			rc.bid(currentVoteAmount);
+		}
+		else{
+			currentVoteAmountToIncreaseBy=1;
+			currentVoteAmount=1;
 		}
 		twoRoundsAgoVoteCount = lastRoundVoteCount;
 		lastRoundVoteCount = currentVotes;
@@ -552,18 +558,18 @@ public class EnlightenmentCenter extends Robot {
 	}
 
 	public int truncateSlanderConv(int conv) {
-		if (conv < 21){
+		if (conv < 21) {
 			return 21;
 		}
 		int influencePerRound = slandererFormula(conv);
-		int convToBuild = conv-1;
-		while(slandererFormula(convToBuild)==influencePerRound){
+		int convToBuild = conv - 1;
+		while (slandererFormula(convToBuild) == influencePerRound) {
 			convToBuild--;
 		}
-		return convToBuild+1;
+		return convToBuild + 1;
 	}
 
 	public int slandererFormula(int conv) {
-		return (int)((1.0/50.0+(0.03)*Math.pow(2.71828, -0.001*conv))*conv);
+		return (int) ((1.0 / 50.0 + (0.03) * Math.pow(2.71828, -0.001 * conv)) * conv);
 	}
 }
