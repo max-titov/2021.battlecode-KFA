@@ -127,9 +127,9 @@ public class Politician extends Robot {
 		int closestMuck = 1000;
 		for (int i = 0; i < enemyBotsLen; i++) {
 			RobotInfo ri = enemyBots[i];
-			if (ri.type.equals(RobotType.MUCKRAKER)&&currLoc.distanceSquaredTo(ri.location)<closestMuck) {
+			if (ri.type.equals(RobotType.MUCKRAKER) && currLoc.distanceSquaredTo(ri.location) < closestMuck) {
 				target = ri;
-				closestMuck=currLoc.distanceSquaredTo(ri.location);
+				closestMuck = currLoc.distanceSquaredTo(ri.location);
 			}
 		}
 		if (target != null) {
@@ -172,35 +172,39 @@ public class Politician extends Robot {
 		}
 
 		int foundECToTarget = readECMessage();
-		if (coinFlip(.7)&&(mainTargetLoc!= null || foundECToTarget == Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam))) { //TODO make this a chance
+		if (coinFlip(.7) && (mainTargetLoc != null
+				|| (foundECToTarget == Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam)))) { // TODO make this a
+																									// chance
 			System.out.println("Switched to Capturer. Target: (" + mainTargetLoc.x + "," + mainTargetLoc.y + ")");
 			politicianType = CAPTURER_POLITICIAN;
 			capturerPolitician();
 		}
 
-		// boolean foundEC = lookForECsToCapture(); TODO uncomment this after testing
+		// boolean foundEC = lookForECsToCapture(); TODO maybe uncomment 
 		// if (foundEC) {
-		// 	return;
+		// return;
 		// }
 
 		int empowerPower = (int) ((conviction - 10) * rc.getEmpowerFactor(myTeam, 0));
 
 		int enemyBotsLen = enemyBots.length;
 		RobotInfo target = null;
+		int closestBotWithinConstraintDist = 1000;
 		for (int i = 0; i < enemyBotsLen; i++) {
 			RobotInfo tempInfo = enemyBots[i];
-			if (tempInfo.team.equals(opponentTeam) && tempInfo.conviction > empowerPower * 2) { // TODO: make the target
-																								// selection better
-				target = enemyBots[i];
-				break;
+			int distToBot = currLoc.distanceSquaredTo(tempInfo.location);
+			if (distToBot < closestBotWithinConstraintDist && tempInfo.conviction + 20 > empowerPower) {
+				target = tempInfo;
+				closestBotWithinConstraintDist = distToBot;
 			}
 		}
 
-		if (target == null) {
-			nav.simpleExploration();
-		} else {
+		if (target != null && coinFlip(.1)) {
 			targetUnit(target);
+		} else {
+			nav.simpleExploration();
 		}
+
 	}
 
 	public boolean lookForECsToCapture() throws GameActionException {

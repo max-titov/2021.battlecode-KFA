@@ -50,6 +50,7 @@ public class EnlightenmentCenter extends Robot {
 	public BuildUnit S41;
 	public BuildUnit S63;
 	public BuildUnit S85;
+	public BuildUnit S107;
 	// Votes
 	public int twoRoundsAgoVoteCount = -2;
 	public int lastRoundVoteCount = -1;
@@ -85,9 +86,10 @@ public class EnlightenmentCenter extends Robot {
 		S41 = new BuildUnit(RobotType.SLANDERER, 41);
 		S63 = new BuildUnit(RobotType.SLANDERER, 63);
 		S85 = new BuildUnit(RobotType.SLANDERER, 85);
-		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S63, S85, P18, S85, S85,
-				P18, S85, S85, P18, S85, P18 };
-		regularBuildCycle = new BuildUnit[] { P18, S41, P35, M1, P35, S41, P35 };
+		S107 = new BuildUnit(RobotType.SLANDERER, 107);
+		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S85, S85, P18, S107,
+				P18, S107, P18, S107, P18, S107, P18 };
+		regularBuildCycle = new BuildUnit[] { P18, S41, P35, M1, P18, S41, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		availableDirs = checkAdjTiles();
 		slandererDirs = getSlandererDirs();
@@ -172,6 +174,9 @@ public class EnlightenmentCenter extends Robot {
 		}
 		if (rc.canBid(currentVoteAmount)) {
 			rc.bid(currentVoteAmount);
+		} else {
+			currentVoteAmountToIncreaseBy = 1;
+			currentVoteAmount = 1;
 		}
 		twoRoundsAgoVoteCount = lastRoundVoteCount;
 		lastRoundVoteCount = currentVotes;
