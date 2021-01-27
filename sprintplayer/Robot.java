@@ -27,7 +27,6 @@ public class Robot {
 	public int influence;
 	public MapLocation currLoc;
 	public int roundNum;
-	public int message;
 	public int sensorRadSq;
 	public MapLocation myECLoc;
 	public int myECid;
@@ -70,9 +69,6 @@ public class Robot {
 		influence = rc.getInfluence();
 		currLoc = rc.getLocation();
 		roundNum = rc.getRoundNum();
-		// this.xOffset = myECLoc.x - currLoc.x;
-		// this.yOffset = myECLoc.y - currLoc.y;
-		// message = comms.checkmessage()
 		comms.updateCurrLoc(currLoc);
 		nav.updateCurrLoc(currLoc);
 	}

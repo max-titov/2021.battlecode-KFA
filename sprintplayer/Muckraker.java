@@ -18,6 +18,7 @@ public class Muckraker extends Robot {
 	public int muckrakerType;
 	public RobotInfo[] robotsInExpose;
 	public RobotInfo[] robotsInSense;
+	public boolean beginAttack;
 	// Explorer Muckraker
 	public MapLocation target;
 	public Direction heading;
@@ -65,18 +66,17 @@ public class Muckraker extends Robot {
 	 */
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
-		switch (muckrakerType) {
-			case EXPLORER_MUCKRAKER:
-				break;
-			case HARASS_MUCKRAKER:
-				break;
+		comms.dropFlag();
+		int[] message = comms.readMessage(myECid);
+		if (message != null && message[0] == Comms.FOUND_EC && message[1] == 1) {
+			beginAttack = true;
 		}
 		robotsInExpose = rc.senseNearbyRobots(12, opponentTeam);
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
 		if (exposeOnSight()) {
 			return;
 		}
-		if (roundNum >= ROUND_TO_START_HARASS && enemyEC != null) {
+		if (beginAttack && enemyEC != null) {
 			muckrakerType = HARASS_MUCKRAKER;
 		}
 		switch (muckrakerType) {
@@ -96,7 +96,6 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public void explorerMuckraker() throws GameActionException {
-		comms.dropFlag();
 		int[] edges = nav.lookForEdges();
 		if (edges == null) {
 			edgeDetected = false;
@@ -129,28 +128,7 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public void harassMuckraker() throws GameActionException {
-		if (sitLocs == null) {
-			generateSitLocations();
-		}
-		if (sitLoc == null) {
-			sitLoc = sitLocs[sitIndex];
-		}
-		if (currLoc.equals(sitLoc)) {
-			return;
-		}
-		if (!rc.canSenseLocation(enemyEC)) {
-			nav.tryMoveToTarget(enemyEC);
-			return;
-		}
-		while (!rc.canSenseLocation(sitLoc) || rc.isLocationOccupied(sitLoc)) {
-			sitIndex++;
-			if (sitIndex == sitLocs.length) {
-				sitIndex = 0;
-				break;
-			}
-			sitLoc = sitLocs[sitIndex];
-		}
-		nav.tryMoveToTarget(sitLoc);
+
 	}
 
 	/**
