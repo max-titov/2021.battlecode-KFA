@@ -426,26 +426,27 @@ public class EnlightenmentCenter extends Robot {
 
 	public void buildCycleUnit() throws GameActionException {
 		BuildUnit bu;
-		int multiplier = 1;
+		int convToBuild = 1;
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
 			bu = initialBuildCycle[initialBuildCycleIndex];
+			convToBuild = bu.conviction;
 		} else {
 			bu = regularBuildCycle[regularBuildCycleIndex];
 			if (bu.type.equals(RobotType.SLANDERER)) {
-				multiplier = influence / 50;
+				convToBuild = truncateSlanderConv(bu.conviction * (influence / 50));
 			} else if (bu.type.equals(RobotType.POLITICIAN)) {
 				if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
-					multiplier = 1;
+					convToBuild = bu.conviction;
 				} else {
-					multiplier = influence / 100;
+					convToBuild = bu.conviction * (influence / 100);
 				}
 			} else if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.2)) {
-				multiplier = 100;
+				convToBuild = 100;
 			}
 		}
 		Direction dirToBuild = dirToBuild(bu);
-		if (rc.canBuildRobot(bu.type, dirToBuild, bu.conviction * multiplier)) {
-			rc.buildRobot(bu.type, dirToBuild, bu.conviction * multiplier);
+		if (rc.canBuildRobot(bu.type, dirToBuild, convToBuild)) {
+			rc.buildRobot(bu.type, dirToBuild, convToBuild);
 			addID(dirToBuild);
 			if (initialBuildCycleIndex < initialBuildCycle.length) {
 				initialBuildCycleIndex++;
@@ -559,18 +560,18 @@ public class EnlightenmentCenter extends Robot {
 	}
 
 	public int truncateSlanderConv(int conv) {
-		if (conv < 21){
+		if (conv < 21) {
 			return 21;
 		}
 		int influencePerRound = slandererFormula(conv);
-		int convToBuild = conv-1;
-		while(slandererFormula(convToBuild)==influencePerRound){
+		int convToBuild = conv - 1;
+		while (slandererFormula(convToBuild) == influencePerRound) {
 			convToBuild--;
 		}
-		return convToBuild+1;
+		return convToBuild + 1;
 	}
 
 	public int slandererFormula(int conv) {
-		return (int)((1.0/50.0+(0.03)*Math.pow(2.71828, -0.001*conv))*conv);
+		return (int) ((1.0 / 50.0 + (0.03) * Math.pow(2.71828, -0.001 * conv)) * conv);
 	}
 }
