@@ -75,8 +75,8 @@ public class EnlightenmentCenter extends Robot {
 		P35 = new BuildUnit(RobotType.POLITICIAN, 35);
 		S41 = new BuildUnit(RobotType.SLANDERER, 41);
 		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41,
-				P18, S41, S41, P18, S41 };
-		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1, P35 };
+				P18, S41, S41, P18, S41, P18 };
+		regularBuildCycle = new BuildUnit[] { P35, S41, M1, P35, S41, M1, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		availableDirs = checkAdjTiles();
 		slandererDirs = getSlandererDirs();
@@ -402,7 +402,6 @@ public class EnlightenmentCenter extends Robot {
 	public void buildPriorityQueueUnit() throws GameActionException {
 		BuildUnit bu = priorityBuildQueue[0];
 		Direction dirToBuild = dirToBuild(bu);
-		System.out.println(bu.type + " to the " + dirToBuild);
 		if (rc.canBuildRobot(bu.type, dirToBuild, bu.conviction)) {
 			rc.buildRobot(bu.type, dirToBuild, bu.conviction);
 			addID(dirToBuild);
@@ -435,7 +434,6 @@ public class EnlightenmentCenter extends Robot {
 		}
 		Direction dirToBuild = dirToBuild(bu);
 		if (rc.canBuildRobot(bu.type, dirToBuild, bu.conviction * multiplier)) {
-			System.out.println(bu.type + " to the " + dirToBuild);
 			rc.buildRobot(bu.type, dirToBuild, bu.conviction * multiplier);
 			addID(dirToBuild);
 			if (initialBuildCycleIndex < initialBuildCycle.length) {
@@ -448,7 +446,6 @@ public class EnlightenmentCenter extends Robot {
 			}
 		} else if (initialBuildCycleIndex < initialBuildCycle.length) {
 			dirToBuild = dirToBuild(M1);
-			System.out.println(RobotType.MUCKRAKER + " to the " + dirToBuild);
 			if (rc.canBuildRobot(RobotType.MUCKRAKER, dirToBuild, 1)) {
 				rc.buildRobot(RobotType.MUCKRAKER, dirToBuild, 1);
 				addID(dirToBuild);
@@ -473,13 +470,11 @@ public class EnlightenmentCenter extends Robot {
 			if (slandererDirIndex == slandererDirs.length) {
 				slandererDirIndex = 0;
 			}
-			System.out.println("Initial Slanderer Dir: " + dirToBuild);
 			for (int i = 0; i < len; i++) {
 				if (rc.onTheMap(currLoc.add(dirToBuild)) && !rc.isLocationOccupied(currLoc.add(dirToBuild))) {
 					break;
 				}
 				dirToBuild = dirToBuild.rotateRight();
-				System.out.println("Initial Dir not available; rotating right to: " + dirToBuild);
 			}
 		} else if (bu.type.equals(RobotType.POLITICIAN)
 				&& (bu.conviction % Politician.HERDER_POLITICIAN_INFLUENCE) == 0) {
