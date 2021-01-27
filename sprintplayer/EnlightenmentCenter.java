@@ -6,7 +6,7 @@ public class EnlightenmentCenter extends Robot {
 	/**
 	 * Constants
 	 */
-	public static final int NUM_OF_UNITS_TO_TRACK = 100;
+	public static final int NUM_OF_UNITS_TO_TRACK = 200;
 	public static final int PRIORITY_BUILD_QUEUE_SIZE = 20;
 	public static final int ROUND_TO_START_ATTACK = 150;
 
@@ -53,7 +53,7 @@ public class EnlightenmentCenter extends Robot {
 	int lastRoundVoteCount = -1;
 	int currentVoteAmount = 1;
 	int currentVoteAmountToIncreaseBy = 1;
-
+	// Messages
 	boolean raisedFlag = false;
 	BuildUnit messageBU;
 
@@ -266,7 +266,13 @@ public class EnlightenmentCenter extends Robot {
 	}
 
 	public void checkFlags() throws GameActionException {
-		for (int i = 0; i < numOfRobotsCreated; i++) {
+		for (int i = 0; i < NUM_OF_UNITS_TO_TRACK; i++) {
+			if (!rc.canGetFlag(robotIDs[i])) {
+				if (robotIDs[i] == 0) {
+					continue;
+				}
+				robotIDs[0] = 0;
+			}
 			int[] info = comms.readMessage(robotIDs[i]);
 			if (info == null) {
 				continue;
@@ -477,8 +483,7 @@ public class EnlightenmentCenter extends Robot {
 				}
 				dirToBuild = dirToBuild.rotateRight();
 			}
-		} else if (bu.type.equals(RobotType.POLITICIAN)
-				&& (bu.conviction % Politician.HERDER_POLITICIAN_INFLUENCE) == 0) {
+		} else if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
 			dirToBuild = slandererDirs[(slandererDirIndex - 1 + slandererDirs.length) % slandererDirs.length];
 			for (int i = 0; i < len; i++) {
 				if (rc.onTheMap(currLoc.add(dirToBuild)) && !rc.isLocationOccupied(currLoc.add(dirToBuild))) {
@@ -519,10 +524,12 @@ public class EnlightenmentCenter extends Robot {
 	}
 
 	public void addID(Direction dirToCheck) throws GameActionException {
-		if (numOfRobotsCreated == NUM_OF_UNITS_TO_TRACK) {
-			return;
+		for (int i = 0; i < NUM_OF_UNITS_TO_TRACK; i++) {
+			if (robotIDs[i] == 0) {
+				robotIDs[i] = rc.senseRobotAtLocation(currLoc.add(dirToCheck)).ID;
+				break;
+			}
 		}
-		robotIDs[numOfRobotsCreated++] = rc.senseRobotAtLocation(currLoc.add(dirToCheck)).ID;
 	}
 
 	public boolean checkInArray(MapLocation[] arr, MapLocation toCheck) {
