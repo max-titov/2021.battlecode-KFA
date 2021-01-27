@@ -298,8 +298,9 @@ public class Muckraker extends Robot {
 	 * Figure out the new target location based on type of muckraker
 	 * 
 	 * @param edges
+	 * @throws GameActionException
 	 */
-	public void updateTargetAtEdge(int[] edges) {
+	public void updateTargetAtEdge(int[] edges) throws GameActionException {
 		int edgeType = edges[0];
 		MapLocation cornerEdgeLoc = new MapLocation(edges[1], edges[2]);
 		Direction directionToCornerEdge = nav.edgeTypeToDir(edgeType);

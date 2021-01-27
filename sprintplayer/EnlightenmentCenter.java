@@ -87,8 +87,8 @@ public class EnlightenmentCenter extends Robot {
 		S63 = new BuildUnit(RobotType.SLANDERER, 63);
 		S85 = new BuildUnit(RobotType.SLANDERER, 85);
 		S107 = new BuildUnit(RobotType.SLANDERER, 107);
-		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S85, P18, S85, P18, S107, P18, S107,
-				P18, S107, P18, S107, P18 };
+		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S85, P18, S85, P18,
+				S107, P18, S107, P18, S107, P18, S107, P18 };
 		regularBuildCycle = new BuildUnit[] { P18, S41, P35, M1, P18, S41, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		availableDirs = checkAdjTiles();
@@ -117,7 +117,7 @@ public class EnlightenmentCenter extends Robot {
 			vote();
 		}
 		Direction randomDir = nav.randomDirection();
-		if(rc.canBuildRobot(RobotType.SLANDERER, randomDir, 41)&& roundNum<20){
+		if (rc.canBuildRobot(RobotType.SLANDERER, randomDir, 41) && roundNum < 20) {
 			rc.buildRobot(RobotType.SLANDERER, randomDir, 41);
 		}
 		checkFlags();
@@ -131,8 +131,7 @@ public class EnlightenmentCenter extends Robot {
 				buildQueueLineCut(M1);
 			}
 			overrideInitialCycle = true;
-		}
-		if (muckrakerInRange) {
+		} else if (muckrakerInRange) {
 			buildQueueLineCut(P18);
 			overrideInitialCycle = true;
 		}
@@ -140,30 +139,30 @@ public class EnlightenmentCenter extends Robot {
 			return;
 		}
 		if (initialBuildCycleIndex < initialBuildCycle.length && !overrideInitialCycle) {
-			System.out.println("\nIn Initial Build Cycle");
-			for (int i = 0; i < initialBuildCycle.length; i++) {
-				if (i == initialBuildCycleIndex) {
-					System.out.println("*" + initialBuildCycle[i] + "*");
-					continue;
-				}
-				System.out.println(initialBuildCycle[i]);
-			}
+			// System.out.println("\nIn Initial Build Cycle");
+			// for (int i = 0; i < initialBuildCycle.length; i++) {
+			// if (i == initialBuildCycleIndex) {
+			// System.out.println("*" + initialBuildCycle[i] + "*");
+			// continue;
+			// }
+			// System.out.println(initialBuildCycle[i]);
+			// }
 			buildCycleUnit();
 		} else if (priorityBuildQueue[0] != null) {
-			System.out.println("\nIn Priority Build Queue");
-			for (int i = 0; i < priorityBuildQueue.length; i++) {
-				System.out.println(priorityBuildQueue[i]);
-			}
+			// System.out.println("\nIn Priority Build Queue");
+			// for (int i = 0; i < priorityBuildQueue.length; i++) {
+			// System.out.println(priorityBuildQueue[i]);
+			// }
 			buildPriorityQueueUnit();
 		} else {
-			System.out.println("\nIn Regular Build Cycle");
-			for (int i = 0; i < regularBuildCycle.length; i++) {
-				if (i == regularBuildCycleIndex) {
-					System.out.println("*" + regularBuildCycle[i] + "*");
-					continue;
-				}
-				System.out.println(regularBuildCycle[i]);
-			}
+			// System.out.println("\nIn Regular Build Cycle");
+			// for (int i = 0; i < regularBuildCycle.length; i++) {
+			// if (i == regularBuildCycleIndex) {
+			// System.out.println("*" + regularBuildCycle[i] + "*");
+			// continue;
+			// }
+			// System.out.println(regularBuildCycle[i]);
+			// }
 			buildCycleUnit();
 		}
 	}
@@ -462,8 +461,8 @@ public class EnlightenmentCenter extends Robot {
 	public void buildCycleUnit() throws GameActionException {
 		BuildUnit bu;
 		int convToBuild = 1;
-		int avaliableInfluence = influence-currentVoteAmount;
-		if(avaliableInfluence<50){
+		int availableInfluence = influence - currentVoteAmount;
+		if (availableInfluence < 50) {
 			return;
 		}
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
@@ -472,12 +471,12 @@ public class EnlightenmentCenter extends Robot {
 		} else {
 			bu = regularBuildCycle[regularBuildCycleIndex];
 			if (bu.type.equals(RobotType.SLANDERER)) {
-				convToBuild = truncateSlanderConv(bu.conviction * (avaliableInfluence / 50));
+				convToBuild = truncateSlanderConv(bu.conviction * (availableInfluence / 50));
 			} else if (bu.type.equals(RobotType.POLITICIAN)) {
 				if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
 					convToBuild = bu.conviction;
 				} else {
-					convToBuild = bu.conviction * (avaliableInfluence / 100);
+					convToBuild = bu.conviction * (availableInfluence / 100);
 				}
 			} else if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.2)) {
 				convToBuild = 100;
