@@ -68,6 +68,7 @@ public class EnlightenmentCenter extends Robot {
 		enemyECLocs = new MapLocation[12];
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
+		findNearbyECs();
 		S130 = new BuildUnit(RobotType.SLANDERER, 130);
 		M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
 		P18 = new BuildUnit(RobotType.POLITICIAN, 18);
@@ -87,10 +88,11 @@ public class EnlightenmentCenter extends Robot {
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		comms.dropFlag();
-		if(raisedFlag){
-			comms.sendFoundECMessage(messageBU.targetECLoc.x, messageBU.targetECLoc.y, messageBU.targetECTeam, messageBU.conviction);
-			raisedFlag=false;
-			messageBU=null;
+		if (raisedFlag) {
+			comms.sendFoundECMessage(messageBU.targetECLoc.x, messageBU.targetECLoc.y, messageBU.targetECTeam,
+					messageBU.conviction);
+			raisedFlag = false;
+			messageBU = null;
 		}
 		if (roundNum > 500) {
 			vote();
@@ -98,6 +100,11 @@ public class EnlightenmentCenter extends Robot {
 		checkFlags();
 		if (roundNum - 50 >= 0 && roundNum % 50 == 0) {
 			sendOutAttackMessage();
+		} else if (getEnemyUnitsInArea()) {
+			comms.sendHelpMessage();
+			if (!priorityBuildQueue[0].equals(M1)) {
+				buildQueueLineCut(M1);
+			}
 		}
 		if (cooldownTurns >= 1) {
 			return;
@@ -157,9 +164,51 @@ public class EnlightenmentCenter extends Robot {
 		if (ECToAttack == null) {
 			return;
 		}
-		System.out.println("attack EC " + enemyECsIndexForAttacks);
 		comms.sendFoundECMessage(ECToAttack.x, ECToAttack.y, opponentTeam, 0);
 		enemyECsIndexForAttacks++;
+	}
+
+	public boolean getEnemyUnitsInArea() throws GameActionException {
+		RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(40, opponentTeam);
+		int totalConv = 0;
+		int len = nearbyEnemies.length;
+		for (int i = 0; i < len; i++) {
+			RobotInfo ri = nearbyEnemies[i];
+			if (ri.type.equals(RobotType.POLITICIAN)) {
+				totalConv += ri.conviction;
+			}
+		}
+		if (influence < 150 && totalConv > influence) {
+			return true;
+		} else if (totalConv > 200) {
+			return true;
+		}
+		return false;
+	}
+
+	public void findNearbyECs() {
+		RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+		int len = nearbyRobots.length;
+		for (int i = 0; i < len; i++) {
+			RobotInfo ri = nearbyRobots[i];
+			if (ri.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+				if (ri.team.equals(myTeam)) {
+					if (!checkInArray(enemyECLocs, ri.location)) {
+						fellowECLocs[fellowECsIndex++] = ri.location;
+					}
+				} else if (ri.team.equals(opponentTeam)) {
+					if (!checkInArray(enemyECLocs, ri.location)) {
+						enemyECLocs[enemyECsIndex++] = ri.location;
+					}
+				} else {
+					if (!checkInArray(neutralECLocs, ri.location)) {
+						neutralECLocs[neutralECsIndex++] = ri.location;
+						buildQueueAdd(
+								new BuildUnit(RobotType.POLITICIAN, ri.conviction + 11, ri.location, Team.NEUTRAL));
+					}
+				}
+			}
+		}
 	}
 
 	public Direction[] getSlandererDirs() throws GameActionException {
@@ -244,9 +293,8 @@ public class EnlightenmentCenter extends Robot {
 						case 2:
 							if (!checkInArray(neutralECLocs, toAdd)) {
 								neutralECLocs[neutralECsIndex++] = toAdd;
-								buildQueueAdd(priorityBuildQueue, new BuildUnit(RobotType.POLITICIAN,
+								buildQueueAdd(new BuildUnit(RobotType.POLITICIAN,
 										comms.convIntRangeToMaxConv(info[2]) + 11, toAdd, Team.NEUTRAL));
-								// System.out.println("Added to Priority Build Queue");
 							}
 							break;
 					}
@@ -324,20 +372,31 @@ public class EnlightenmentCenter extends Robot {
 		}
 	}
 
-	public void buildQueueRemove(BuildUnit[] buildQueue) {
-		for (int i = 1; i < buildQueue.length; i++) {
-			buildQueue[i - 1] = buildQueue[i];
+	public void buildQueueRemove() {
+		int len = priorityBuildQueue.length;
+		for (int i = 1; i < len; i++) {
+			priorityBuildQueue[i - 1] = priorityBuildQueue[i];
 		}
-		buildQueue[buildQueue.length - 1] = null;
+		priorityBuildQueue[priorityBuildQueue.length - 1] = null;
 	}
 
-	public void buildQueueAdd(BuildUnit[] buildQueue, BuildUnit bu) {
-		for (int i = 0; i < buildQueue.length; i++) {
-			if (buildQueue[i] == null) {
-				buildQueue[i] = bu;
+	public void buildQueueAdd(BuildUnit bu) {
+		int len = priorityBuildQueue.length;
+		for (int i = 0; i < len; i++) {
+			if (priorityBuildQueue[i] == null) {
+				priorityBuildQueue[i] = bu;
 				return;
 			}
 		}
+	}
+
+	public void buildQueueLineCut(BuildUnit bu) {
+		int len = priorityBuildQueue.length;
+		for (int i = 0; i < len - 1; i++) {
+			priorityBuildQueue[i + 1] = priorityBuildQueue[i];
+		}
+		priorityBuildQueue[0] = null;
+		buildQueueAdd(bu);
 	}
 
 	public void buildPriorityQueueUnit() throws GameActionException {
@@ -348,10 +407,10 @@ public class EnlightenmentCenter extends Robot {
 			rc.buildRobot(bu.type, dirToBuild, bu.conviction);
 			addID(dirToBuild);
 			if (bu.hasTargetEC()) {
-				raisedFlag=true;
+				raisedFlag = true;
 				messageBU = bu;
 			}
-			buildQueueRemove(priorityBuildQueue);
+			buildQueueRemove();
 		}
 	}
 
@@ -362,10 +421,15 @@ public class EnlightenmentCenter extends Robot {
 			bu = initialBuildCycle[initialBuildCycleIndex];
 		} else {
 			bu = regularBuildCycle[regularBuildCycleIndex];
-			if (bu.type.equals(RobotType.SLANDERER) || bu.type.equals(RobotType.POLITICIAN)) {
-				multiplier = influence / 100;
-			}
-			if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.2)) {
+			if (bu.type.equals(RobotType.SLANDERER)) {
+				multiplier = influence / 50;
+			} else if (bu.type.equals(RobotType.POLITICIAN)) {
+				if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
+					multiplier = 1;
+				} else {
+					multiplier = influence / 100;
+				}
+			} else if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.2)) {
 				multiplier = 100;
 			}
 		}

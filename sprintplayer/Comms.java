@@ -8,6 +8,7 @@ public class Comms {
 	 */
 	public static final int FOUND_EDGE = 1;
 	public static final int FOUND_EC = 2;
+	public static final int HELP = 3;
 
 	/**
 	 * Attributes
@@ -84,6 +85,8 @@ public class Comms {
 				return readFoundEdgeMessage(rawMessage);
 			case FOUND_EC:
 				return readFoundECMessage(rawMessage);
+			case HELP:
+				return readHelpMessage();
 		}
 		return null;
 	}
@@ -219,6 +222,19 @@ public class Comms {
 		info[2] = rawMessage & 0b1111;
 		rawMessage = rawMessage >> 4;
 		info[1] = rawMessage;
+		return info;
+	}
+
+	public void sendHelpMessage() throws GameActionException {
+		int packedMessage = 0;
+		packedMessage += HELP;
+		sendMessage(packedMessage);
+	}
+
+	public int[] readHelpMessage() {
+		// [MessageType]
+		int[] info = new int[1];
+		info[0] = HELP;
 		return info;
 	}
 

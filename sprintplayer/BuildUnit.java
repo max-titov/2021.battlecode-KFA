@@ -32,4 +32,18 @@ public class BuildUnit {
 		return type.toString() + " " + conviction + " has target EC: " + hasTargetEC();
 	}
 
+	public boolean equals(BuildUnit bu) {
+		boolean targetCheck = true;
+		if (bu.hasTargetEC() && hasTargetEC()) {
+			if (targetECLoc.equals(bu.targetECLoc) && targetECTeam.equals(bu.targetECTeam)) {
+				targetCheck = true;
+			} else {
+				targetCheck = false;
+			}
+		} else {
+			targetCheck = false;
+		}
+		return type.equals(bu.type) && conviction == bu.conviction && targetCheck;
+	}
+
 }
