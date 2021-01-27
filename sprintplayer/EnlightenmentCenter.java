@@ -87,13 +87,8 @@ public class EnlightenmentCenter extends Robot {
 		S63 = new BuildUnit(RobotType.SLANDERER, 63);
 		S85 = new BuildUnit(RobotType.SLANDERER, 85);
 		S107 = new BuildUnit(RobotType.SLANDERER, 107);
-<<<<<<< HEAD
 		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S85, P18, S85, P18, S107, P18, S107,
 				P18, S107, P18, S107, P18 };
-=======
-		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S85, S85, P18, S107,
-				P18, S107, P18, S107, P18, S107, P18 };
->>>>>>> e357411c293646b925df4bab86097bf5c8f6ed25
 		regularBuildCycle = new BuildUnit[] { P18, S41, P35, M1, P18, S41, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		availableDirs = checkAdjTiles();
