@@ -43,21 +43,28 @@ public class EnlightenmentCenter extends Robot {
 	public Direction[] slandererDirs;
 	public int slandererDirIndex;
 	// Common BuildUnits
-	BuildUnit S130;
-	BuildUnit M1;
-	BuildUnit P18;
-	BuildUnit P35;
-	BuildUnit S41;
-	BuildUnit S63;
-	BuildUnit S85;
+	public BuildUnit S130;
+	public BuildUnit M1;
+	public BuildUnit P18;
+	public BuildUnit P35;
+	public BuildUnit S41;
+	public BuildUnit S63;
+	public BuildUnit S85;
 	// Votes
-	int twoRoundsAgoVoteCount = -2;
-	int lastRoundVoteCount = -1;
-	int currentVoteAmount = 1;
-	int currentVoteAmountToIncreaseBy = 1;
+	public int twoRoundsAgoVoteCount = -2;
+	public int lastRoundVoteCount = -1;
+	public int currentVoteAmount = 1;
+	public int currentVoteAmountToIncreaseBy = 1;
 	// Messages
-	boolean raisedFlag = false;
-	BuildUnit messageBU;
+	public boolean raisedFlag = false;
+	public BuildUnit messageBU;
+	// Defense
+	public boolean muckrakerInRange;
+	public boolean politicianInRange;
+	public int totalEnemyPolConv;
+	public int numOfMuckrakersInRange;
+	public Direction dirToClosestMuck;
+	public boolean overrideInitialCycle;
 
 	/**
 	 * Constructor
@@ -71,7 +78,6 @@ public class EnlightenmentCenter extends Robot {
 		enemyECLocs = new MapLocation[12];
 		fellowECLocs = new MapLocation[12];
 		neutralECLocs = new MapLocation[6];
-		findNearbyECs();
 		S130 = new BuildUnit(RobotType.SLANDERER, 130);
 		M1 = new BuildUnit(RobotType.MUCKRAKER, 1);
 		P18 = new BuildUnit(RobotType.POLITICIAN, 18);
@@ -88,11 +94,17 @@ public class EnlightenmentCenter extends Robot {
 		if (roundNum > 1) {
 			initialBuildCycleIndex = initialBuildCycle.length;
 		}
+		findNearbyECs();
 	}
 
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		comms.dropFlag();
+		muckrakerInRange = false;
+		politicianInRange = false;
+		totalEnemyPolConv = 0;
+		numOfMuckrakersInRange = 0;
+		overrideInitialCycle = false;
 		if (raisedFlag) {
 			comms.sendFoundECMessage(messageBU.targetECLoc.x, messageBU.targetECLoc.y, messageBU.targetECTeam,
 					messageBU.conviction);
@@ -105,40 +117,47 @@ public class EnlightenmentCenter extends Robot {
 		checkFlags();
 		if (roundNum - ROUND_TO_START_ATTACK >= 0 && roundNum % 50 == 0) {
 			sendOutAttackMessage();
-		} else if (getEnemyUnitsInArea()) {
+		}
+		checkNearbyUnits();
+		if ((influence < 150 && totalEnemyPolConv > influence) || totalEnemyPolConv > 200) {
 			comms.sendHelpMessage();
-			if (!priorityBuildQueue[0].equals(M1)) {
+			if (priorityBuildQueue[0] == null || !priorityBuildQueue[0].equals(M1)) {
 				buildQueueLineCut(M1);
 			}
+			overrideInitialCycle = true;
+		}
+		if (muckrakerInRange) {
+			buildQueueLineCut(P18);
+			overrideInitialCycle = true;
 		}
 		if (cooldownTurns >= 1) {
 			return;
 		}
-		if (initialBuildCycleIndex < initialBuildCycle.length) {
-			// System.out.println("\nIn Initial Build Cycle");
-			// for (int i = 0; i < initialBuildCycle.length; i++) {
-			// if (i == initialBuildCycleIndex) {
-			// System.out.println("*" + initialBuildCycle[i] + "*");
-			// continue;
-			// }
-			// System.out.println(initialBuildCycle[i]);
-			// }
+		if (initialBuildCycleIndex < initialBuildCycle.length && !overrideInitialCycle) {
+			System.out.println("\nIn Initial Build Cycle");
+			for (int i = 0; i < initialBuildCycle.length; i++) {
+				if (i == initialBuildCycleIndex) {
+					System.out.println("*" + initialBuildCycle[i] + "*");
+					continue;
+				}
+				System.out.println(initialBuildCycle[i]);
+			}
 			buildCycleUnit();
 		} else if (priorityBuildQueue[0] != null) {
-			// System.out.println("\nIn Priority Build Queue");
-			// for (int i = 0; i < priorityBuildQueue.length; i++) {
-			// System.out.println(priorityBuildQueue[i]);
-			// }
+			System.out.println("\nIn Priority Build Queue");
+			for (int i = 0; i < priorityBuildQueue.length; i++) {
+				System.out.println(priorityBuildQueue[i]);
+			}
 			buildPriorityQueueUnit();
 		} else {
-			// System.out.println("\nIn Regular Build Cycle");
-			// for (int i = 0; i < regularBuildCycle.length; i++) {
-			// if (i == regularBuildCycleIndex) {
-			// System.out.println("*" + regularBuildCycle[i] + "*");
-			// continue;
-			// }
-			// System.out.println(regularBuildCycle[i]);
-			// }
+			System.out.println("\nIn Regular Build Cycle");
+			for (int i = 0; i < regularBuildCycle.length; i++) {
+				if (i == regularBuildCycleIndex) {
+					System.out.println("*" + regularBuildCycle[i] + "*");
+					continue;
+				}
+				System.out.println(regularBuildCycle[i]);
+			}
 			buildCycleUnit();
 		}
 	}
@@ -173,22 +192,29 @@ public class EnlightenmentCenter extends Robot {
 		enemyECsIndexForAttacks++;
 	}
 
-	public boolean getEnemyUnitsInArea() throws GameActionException {
+	public void checkNearbyUnits() throws GameActionException {
 		RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(40, opponentTeam);
-		int totalConv = 0;
+		RobotInfo closestMuck = null;
 		int len = nearbyEnemies.length;
 		for (int i = 0; i < len; i++) {
 			RobotInfo ri = nearbyEnemies[i];
 			if (ri.type.equals(RobotType.POLITICIAN)) {
-				totalConv += ri.conviction;
+				politicianInRange = true;
+				totalEnemyPolConv += ri.conviction;
+			} else if (ri.type.equals(RobotType.MUCKRAKER)) {
+				muckrakerInRange = true;
+				numOfMuckrakersInRange++;
+				if (closestMuck == null) {
+					closestMuck = ri;
+				}
+				if (currLoc.distanceSquaredTo(ri.location) < currLoc.distanceSquaredTo(closestMuck.location)) {
+					closestMuck = ri;
+				}
 			}
 		}
-		if (influence < 150 && totalConv > influence) {
-			return true;
-		} else if (totalConv > 200) {
-			return true;
+		if (closestMuck != null) {
+			dirToClosestMuck = currLoc.directionTo(closestMuck.location);
 		}
-		return false;
 	}
 
 	public void findNearbyECs() {
@@ -403,8 +429,8 @@ public class EnlightenmentCenter extends Robot {
 
 	public void buildQueueLineCut(BuildUnit bu) {
 		int len = priorityBuildQueue.length;
-		for (int i = 0; i < len - 1; i++) {
-			priorityBuildQueue[i + 1] = priorityBuildQueue[i];
+		for (int i = len - 1; i > 0; i--) {
+			priorityBuildQueue[i - 1] = priorityBuildQueue[i];
 		}
 		priorityBuildQueue[0] = null;
 		buildQueueAdd(bu);
