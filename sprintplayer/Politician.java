@@ -10,6 +10,7 @@ public class Politician extends Robot {
 	public final int HERDER_POLITICIAN = 1;
 	public final int CAPTURER_POLITICIAN = 2;
 	public final int WANDERER_POLITICIAN = 3;
+	public final int DEFENSE_POLITICIAN = 4;
 
 	public static final int SLANDERER_FLAG = 934245;
 
@@ -25,6 +26,8 @@ public class Politician extends Robot {
 	public RobotInfo[] robotsInEmpowerMax;
 	public MapLocation mainTargetLoc;
 	public Team mainTargetTeam;
+
+	public boolean helpEC = false;
 
 	public boolean clockwise = true; // what direction the politician will be circling the slanderer group
 
@@ -44,6 +47,7 @@ public class Politician extends Robot {
 	}
 
 	public int readECMessage() throws GameActionException {
+		helpEC=false;
 		int[] message = comms.readMessage(myECid);
 		if (message == null) {
 			return -1;
@@ -63,6 +67,8 @@ public class Politician extends Robot {
 			mainTargetLoc = new MapLocation(targetX, targetY);
 			mainTargetTeam = targetTeam;
 			return Comms.FOUND_EC;
+		} else if (messageType == Comms.HELP && currLoc.distanceSquaredTo(myECLoc) < 120){
+			helpEC = true;
 		}
 		return -1;
 	}
@@ -75,6 +81,10 @@ public class Politician extends Robot {
 		neutralBots = rc.senseNearbyRobots(sensorRadSq, Team.NEUTRAL);
 		robotsInEmpowerMax = rc.senseNearbyRobots(9);
 		// nav.tryMove(randomDirection());
+		if(!rc.canGetFlag(myECid)&&politicianType!=HERDER_POLITICIAN){
+			politicianType = WANDERER_POLITICIAN;
+		}
+
 		switch (politicianType) {
 			case HERDER_POLITICIAN:
 				// System.out.println("Herder");
@@ -88,6 +98,11 @@ public class Politician extends Robot {
 				// System.out.println("Wanderer");
 				wandererPolitician();
 				break;
+			case DEFENSE_POLITICIAN:
+				System.out.println("Defense");
+				herderPolitician();
+				break;
+
 		}
 	}
 
@@ -171,6 +186,14 @@ public class Politician extends Robot {
 			return;
 		}
 
+		mainTargetTeam=null;
+
+		if (helpEC){
+			politicianType=DEFENSE_POLITICIAN;
+			defensePolitician();
+			return;
+		}
+
 		int foundECToTarget = readECMessage();
 		if (coinFlip(.7) && (mainTargetLoc != null
 				|| (foundECToTarget == Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam)))) { // TODO make this a
@@ -179,6 +202,7 @@ public class Politician extends Robot {
 			// + mainTargetLoc.y + ")");
 			politicianType = CAPTURER_POLITICIAN;
 			capturerPolitician();
+			return;
 		}
 
 		// boolean foundEC = lookForECsToCapture(); TODO maybe uncomment
@@ -208,13 +232,51 @@ public class Politician extends Robot {
 
 	}
 
+	public void defensePolitician()throws GameActionException {
+
+		boolean foundEC = lookForECsToCapture();
+		if (foundEC) {
+			return;
+		}
+
+		readECMessage();
+
+		if(!helpEC){
+			politicianType=WANDERER_POLITICIAN;
+			wandererPolitician();
+			return;
+		}
+
+		int empowerPower = (int) ((conviction - 10) * rc.getEmpowerFactor(myTeam, 0));
+
+		int enemyBotsLen = enemyBots.length;
+		RobotInfo target = null;
+		int closestBotWithinConstraintDist = 1000;
+		for (int i = 0; i < enemyBotsLen; i++) {
+			RobotInfo tempInfo = enemyBots[i];
+			int distToBot = currLoc.distanceSquaredTo(tempInfo.location);
+			if (tempInfo.type.equals(RobotType.POLITICIAN) && distToBot < closestBotWithinConstraintDist && tempInfo.conviction*2 > empowerPower) {
+				target = tempInfo;
+				closestBotWithinConstraintDist = distToBot;
+			}
+		}
+
+		if (currLoc.distanceSquaredTo(myECLoc) < 40 && target != null && coinFlip(.5)) {
+			targetUnit(target);
+		} else {
+			nav.tryMoveToTarget(myECLoc);
+		}
+	}
+
 	public boolean lookForECsToCapture() throws GameActionException {
 		int enemyBotsLen = enemyBots.length;
 		RobotInfo target = null;
-		for (int i = 0; i < enemyBotsLen; i++) {
-			if (enemyBots[i].type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				target = enemyBots[i];
-				break;
+		if(mainTargetTeam==null || !mainTargetTeam.equals(Team.NEUTRAL)){
+			for (int i = 0; i < enemyBotsLen; i++) {
+				if (enemyBots[i].type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+					target = enemyBots[i];
+					break;
+				}
 			}
 		}
 		int neutralBotsLen = neutralBots.length;
