@@ -53,6 +53,9 @@ public class EnlightenmentCenter extends Robot {
 	int currentVoteAmount = 1;
 	int currentVoteAmountToIncreaseBy = 1;
 
+	boolean raisedFlag = false;
+	BuildUnit messageBU;
+
 	/**
 	 * Constructor
 	 * 
@@ -85,6 +88,11 @@ public class EnlightenmentCenter extends Robot {
 	public void takeTurn() throws GameActionException {
 		super.takeTurn();
 		comms.dropFlag();
+		if(raisedFlag){
+			comms.sendFoundECMessage(messageBU.targetECLoc.x, messageBU.targetECLoc.y, messageBU.targetECTeam, messageBU.conviction);
+			raisedFlag=false;
+			messageBU=null;
+		}
 		if (roundNum > 500) {
 			vote();
 		}
@@ -340,7 +348,8 @@ public class EnlightenmentCenter extends Robot {
 			rc.buildRobot(bu.type, dirToBuild, bu.conviction);
 			addID(dirToBuild);
 			if (bu.hasTargetEC()) {
-				comms.sendFoundECMessage(bu.targetECLoc.x, bu.targetECLoc.y, bu.targetECTeam, bu.conviction);
+				raisedFlag=true;
+				messageBU = bu;
 			}
 			buildQueueRemove(priorityBuildQueue);
 		}
