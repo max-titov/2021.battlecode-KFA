@@ -196,6 +196,7 @@ public class Muckraker extends Robot {
 		for (int i = 0; i < neutralRobots.length; i++) {
 			RobotInfo ri = neutralRobots[i];
 			if (ri.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
+				System.out.println("trying to send");
 				comms.sendFoundECMessage(ri);
 				break;
 			}

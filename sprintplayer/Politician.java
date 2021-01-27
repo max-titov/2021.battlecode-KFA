@@ -77,12 +77,15 @@ public class Politician extends Robot {
 		// nav.tryMove(randomDirection());
 		switch (politicianType) {
 			case HERDER_POLITICIAN:
+				System.out.println("Herder");
 				herderPolitician();
 				break;
 			case CAPTURER_POLITICIAN:
+				System.out.println("Capturer");
 				capturerPolitician();
 				break;
 			case WANDERER_POLITICIAN:
+				System.out.println("Wanderer");
 				wandererPolitician();
 				break;
 		}
@@ -167,7 +170,7 @@ public class Politician extends Robot {
 		}
 
 		int foundECToTarget = readECMessage();
-		if (foundECToTarget == Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam)) {
+		if (mainTargetLoc!= null || foundECToTarget == Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam)) {
 			System.out.println("Switched to Capturer. Target: (" + mainTargetLoc.x + "," + mainTargetLoc.y + ")");
 			politicianType = CAPTURER_POLITICIAN;
 			capturerPolitician();
