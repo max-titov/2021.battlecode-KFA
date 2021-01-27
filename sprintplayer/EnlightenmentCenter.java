@@ -56,7 +56,7 @@ public class EnlightenmentCenter extends Robot {
 	int lastRoundVoteCount = -1;
 	int currentVoteAmount = 1;
 	int currentVoteAmountToIncreaseBy = 1;
-
+	// Messages
 	boolean raisedFlag = false;
 	BuildUnit messageBU;
 
@@ -276,7 +276,13 @@ public class EnlightenmentCenter extends Robot {
 	}
 
 	public void checkFlags() throws GameActionException {
-		for (int i = 0; i < numOfRobotsCreated; i++) {
+		for (int i = 0; i < NUM_OF_UNITS_TO_TRACK; i++) {
+			if (!rc.canGetFlag(robotIDs[i])) {
+				if (robotIDs[i] == 0) {
+					continue;
+				}
+				robotIDs[0] = 0;
+			}
 			int[] info = comms.readMessage(robotIDs[i]);
 			if (info == null) {
 				continue;
@@ -426,26 +432,27 @@ public class EnlightenmentCenter extends Robot {
 
 	public void buildCycleUnit() throws GameActionException {
 		BuildUnit bu;
-		int multiplier = 1;
+		int convToBuild = 1;
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
 			bu = initialBuildCycle[initialBuildCycleIndex];
+			convToBuild = bu.conviction;
 		} else {
 			bu = regularBuildCycle[regularBuildCycleIndex];
 			if (bu.type.equals(RobotType.SLANDERER)) {
-				multiplier = influence / 50;
+				convToBuild = truncateSlanderConv(bu.conviction * (influence / 50));
 			} else if (bu.type.equals(RobotType.POLITICIAN)) {
 				if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
-					multiplier = 1;
+					convToBuild = bu.conviction;
 				} else {
-					multiplier = influence / 100;
+					convToBuild = bu.conviction * (influence / 100);
 				}
 			} else if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.2)) {
-				multiplier = 100;
+				convToBuild = 100;
 			}
 		}
 		Direction dirToBuild = dirToBuild(bu);
-		if (rc.canBuildRobot(bu.type, dirToBuild, bu.conviction * multiplier)) {
-			rc.buildRobot(bu.type, dirToBuild, bu.conviction * multiplier);
+		if (rc.canBuildRobot(bu.type, dirToBuild, convToBuild)) {
+			rc.buildRobot(bu.type, dirToBuild, convToBuild);
 			addID(dirToBuild);
 			if (initialBuildCycleIndex < initialBuildCycle.length) {
 				initialBuildCycleIndex++;
@@ -487,8 +494,7 @@ public class EnlightenmentCenter extends Robot {
 				}
 				dirToBuild = dirToBuild.rotateRight();
 			}
-		} else if (bu.type.equals(RobotType.POLITICIAN)
-				&& (bu.conviction % Politician.HERDER_POLITICIAN_INFLUENCE) == 0) {
+		} else if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
 			dirToBuild = slandererDirs[(slandererDirIndex - 1 + slandererDirs.length) % slandererDirs.length];
 			for (int i = 0; i < len; i++) {
 				if (rc.onTheMap(currLoc.add(dirToBuild)) && !rc.isLocationOccupied(currLoc.add(dirToBuild))) {
@@ -529,10 +535,12 @@ public class EnlightenmentCenter extends Robot {
 	}
 
 	public void addID(Direction dirToCheck) throws GameActionException {
-		if (numOfRobotsCreated == NUM_OF_UNITS_TO_TRACK) {
-			return;
+		for (int i = 0; i < NUM_OF_UNITS_TO_TRACK; i++) {
+			if (robotIDs[i] == 0) {
+				robotIDs[i] = rc.senseRobotAtLocation(currLoc.add(dirToCheck)).ID;
+				break;
+			}
 		}
-		robotIDs[numOfRobotsCreated++] = rc.senseRobotAtLocation(currLoc.add(dirToCheck)).ID;
 	}
 
 	public boolean checkInArray(MapLocation[] arr, MapLocation toCheck) {
