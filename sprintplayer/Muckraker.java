@@ -8,6 +8,7 @@ public class Muckraker extends Robot {
 	 */
 	public final int EXPLORER_MUCKRAKER = 1;
 	public final int HARASS_MUCKRAKER = 2;
+	public final int DEFENSE_MUCKRAKER = 3;
 	public final int BOUNCE_EXPLORER = 1;
 	public final int EDGE_EXPLORER = 2;
 
@@ -73,9 +74,12 @@ public class Muckraker extends Robot {
 		super.takeTurn();
 		comms.dropFlag();
 		int[] message = comms.readMessage(myECid);
-		if (message != null && message[0] == Comms.FOUND_EC && message[1] == 1) {
+		// if (message != null && message[0] == Comms.HELP) {
+		// muckrakerType = DEFENSE_MUCKRAKER
+		// }
+		if (message != null && message[0] == Comms.FOUND_EC && message[1] == 1 && coinFlip(.5)) {
 			beginAttack = true;
-			if (enemyEC == null && coinFlip(.5)) {
+			if (enemyEC == null) {
 				int targetXOffset = message[3];
 				int targetYOffset = message[4];
 				int targetX = myECLoc.x + targetXOffset;
