@@ -80,7 +80,7 @@ public class EnlightenmentCenter extends Robot {
 		S63 = new BuildUnit(RobotType.SLANDERER, 63);
 		S85 = new BuildUnit(RobotType.SLANDERER, 85);
 		S107 = new BuildUnit(RobotType.SLANDERER, 107);
-		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S85, S85, P18, S107, P18, S107,
+		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S63, S63, P18, S63, S63, P18, S85, P18, S85, P18, S107, P18, S107,
 				P18, S107, P18, S107, P18 };
 		regularBuildCycle = new BuildUnit[] { P18, S41, P35, M1, P18, S41, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
@@ -101,8 +101,12 @@ public class EnlightenmentCenter extends Robot {
 			raisedFlag = false;
 			messageBU = null;
 		}
-		if (roundNum > 500) {
+		if (roundNum > 200) {
 			vote();
+		}
+		Direction randomDir = nav.randomDirection();
+		if(rc.canBuildRobot(RobotType.SLANDERER, randomDir, 41)&& roundNum<20){
+			rc.buildRobot(RobotType.SLANDERER, randomDir, 41);
 		}
 		checkFlags();
 		if (roundNum - ROUND_TO_START_ATTACK >= 0 && roundNum % 50 == 0) {
@@ -433,18 +437,22 @@ public class EnlightenmentCenter extends Robot {
 	public void buildCycleUnit() throws GameActionException {
 		BuildUnit bu;
 		int convToBuild = 1;
+		int avaliableInfluence = influence-currentVoteAmount;
+		if(avaliableInfluence<50){
+			return;
+		}
 		if (initialBuildCycleIndex < initialBuildCycle.length) {
 			bu = initialBuildCycle[initialBuildCycleIndex];
 			convToBuild = bu.conviction;
 		} else {
 			bu = regularBuildCycle[regularBuildCycleIndex];
 			if (bu.type.equals(RobotType.SLANDERER)) {
-				convToBuild = truncateSlanderConv(bu.conviction * (influence / 50));
+				convToBuild = truncateSlanderConv(bu.conviction * (avaliableInfluence / 50));
 			} else if (bu.type.equals(RobotType.POLITICIAN)) {
 				if (bu.type.equals(RobotType.POLITICIAN) && bu.conviction == Politician.HERDER_POLITICIAN_INFLUENCE) {
 					convToBuild = bu.conviction;
 				} else {
-					convToBuild = bu.conviction * (influence / 100);
+					convToBuild = bu.conviction * (avaliableInfluence / 100);
 				}
 			} else if (bu.type.equals(RobotType.MUCKRAKER) && coinFlip(0.2)) {
 				convToBuild = 100;
