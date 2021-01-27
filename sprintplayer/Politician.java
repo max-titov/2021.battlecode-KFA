@@ -124,10 +124,12 @@ public class Politician extends Robot {
 	public void targetEnemyMucks() throws GameActionException {
 		int enemyBotsLen = enemyBots.length;
 		RobotInfo target = null;
+		int closestMuck = 1000;
 		for (int i = 0; i < enemyBotsLen; i++) {
-			if (enemyBots[i].type.equals(RobotType.MUCKRAKER)) {
-				target = enemyBots[i];
-				break;
+			RobotInfo ri = enemyBots[i];
+			if (ri.type.equals(RobotType.MUCKRAKER)&&currLoc.distanceSquaredTo(ri.location)<closestMuck) {
+				target = ri;
+				closestMuck=currLoc.distanceSquaredTo(ri.location);
 			}
 		}
 		if (target != null) {
@@ -170,16 +172,16 @@ public class Politician extends Robot {
 		}
 
 		int foundECToTarget = readECMessage();
-		if (mainTargetLoc!= null || foundECToTarget == Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam)) {
+		if (coinFlip(.7)&&(mainTargetLoc!= null || foundECToTarget == Comms.FOUND_EC && mainTargetTeam.equals(opponentTeam))) { //TODO make this a chance
 			System.out.println("Switched to Capturer. Target: (" + mainTargetLoc.x + "," + mainTargetLoc.y + ")");
 			politicianType = CAPTURER_POLITICIAN;
 			capturerPolitician();
 		}
 
-		boolean foundEC = lookForECsToCapture();
-		if (foundEC) {
-			return;
-		}
+		// boolean foundEC = lookForECsToCapture(); TODO uncomment this after testing
+		// if (foundEC) {
+		// 	return;
+		// }
 
 		int empowerPower = (int) ((conviction - 10) * rc.getEmpowerFactor(myTeam, 0));
 

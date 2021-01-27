@@ -18,6 +18,8 @@ public class Muckraker extends Robot {
 	public int muckrakerType;
 	public RobotInfo[] robotsInExpose;
 	public RobotInfo[] robotsInSense;
+	public RobotInfo[] enemyBots;
+	public RobotInfo[] alliedBots;
 	public boolean beginAttack;
 	// Explorer Muckraker
 	public MapLocation target;
@@ -31,6 +33,7 @@ public class Muckraker extends Robot {
 	public MapLocation sitLoc;
 	public int sitIndex;
 	public int enemyECCircleIndex;
+	public boolean clockwise;
 
 	/**
 	 * Constructor Set muckraker type to a either a bounce or edge explorer
@@ -46,6 +49,9 @@ public class Muckraker extends Robot {
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
 		muckrakerType = EXPLORER_MUCKRAKER;
 		target = getTargetRelativeEC();
+		if(coinFlip()){
+			clockwise=true;
+		}
 		if (roundNum < ROUND_TO_START_HARASS) {
 			if (coinFlip()) {
 				explorerType = EDGE_EXPLORER;
@@ -70,11 +76,24 @@ public class Muckraker extends Robot {
 		int[] message = comms.readMessage(myECid);
 		if (message != null && message[0] == Comms.FOUND_EC && message[1] == 1) {
 			beginAttack = true;
+			if (enemyEC==null && coinFlip(.5)){
+				int targetXOffset = message[3];
+				int targetYOffset = message[4];
+				int targetX = myECLoc.x + targetXOffset;
+				int targetY = myECLoc.y + targetYOffset;
+				enemyEC = new MapLocation(targetX, targetY);
+			}
 		}
+		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
+		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		robotsInExpose = rc.senseNearbyRobots(12, opponentTeam);
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
 		if (exposeOnSight()) {
 			return;
+		}
+		//check if the enemy EC is no longer an enemy EC
+		if (enemyEC != null && rc.canSenseLocation(enemyEC) && !rc.senseRobotAtLocation(enemyEC).team.equals(opponentTeam)){
+			enemyEC = null;
 		}
 		if (beginAttack && enemyEC != null) {
 			muckrakerType = HARASS_MUCKRAKER;
@@ -128,7 +147,63 @@ public class Muckraker extends Robot {
 	 * @throws GameActionException
 	 */
 	public void harassMuckraker() throws GameActionException {
+		if(enemyEC==null){
+			muckrakerType=EXPLORER_MUCKRAKER;
+			explorerMuckraker();
+		}
+		// rc.setIndicatorDot(enemyEC, 0, 255, 255);
+		// System.out.println("target EC at "+enemyEC);
 
+		int alliedBotsLen = alliedBots.length;
+		int nearestPoliticianDist = 1000;
+		RobotInfo nearestPolitician = null;
+		for (int i = 0; i < alliedBotsLen; i++) {
+			RobotInfo ri = alliedBots[i];
+			if (ri.type.equals(RobotType.POLITICIAN) && currLoc.distanceSquaredTo(ri.location)<nearestPoliticianDist) {
+				nearestPolitician = ri;
+				nearestPoliticianDist=currLoc.distanceSquaredTo(ri.location);
+			}
+		}
+		if(nearestPolitician!=null && currLoc.isWithinDistanceSquared(enemyEC, 40)){
+			nav.tryMoveToTarget(nearestPolitician.location.directionTo(currLoc));
+			// rc.setIndicatorLine(currLoc, currLoc.add(nearestPolitician.location.directionTo(currLoc)), 255, 0, 255);
+			// rc.setIndicatorDot(nearestPolitician.location, 255, 0, 255);
+			return;
+		}
+
+
+		int sqDistToEC = currLoc.distanceSquaredTo(enemyEC);
+		Direction dirToEC = currLoc.directionTo(enemyEC);
+
+		Direction moveDir = dirToEC;
+		if (sqDistToEC < 11) {
+			moveDir = rotate(rotate(rotate(dirToEC)));
+		} else if (sqDistToEC > 30) {
+			moveDir = dirToEC;
+		} else if (sqDistToEC > 20) {
+			moveDir = (rotate(dirToEC));
+		} else {
+			moveDir = rotate(rotate(dirToEC));
+		}
+
+		if (!rc.onTheMap(currLoc.add(moveDir).add(moveDir))) {
+			clockwise = !clockwise;
+			return;
+		}
+		rc.setIndicatorLine(currLoc, currLoc.add(moveDir), 0, 255, 255);
+		nav.bugNav(moveDir);
+	}
+	/**
+	 * used when circling the enemy ec
+	 * @param dir
+	 * @return
+	 * @throws GameActionException
+	 */
+	public Direction rotate(Direction dir) throws GameActionException {
+		if (clockwise) {
+			return dir.rotateRight();
+		}
+		return dir.rotateLeft();
 	}
 
 	/**
@@ -196,7 +271,6 @@ public class Muckraker extends Robot {
 		for (int i = 0; i < neutralRobots.length; i++) {
 			RobotInfo ri = neutralRobots[i];
 			if (ri.type.equals(RobotType.ENLIGHTENMENT_CENTER)) {
-				System.out.println("trying to send");
 				comms.sendFoundECMessage(ri);
 				break;
 			}

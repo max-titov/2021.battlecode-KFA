@@ -74,8 +74,8 @@ public class EnlightenmentCenter extends Robot {
 		P35 = new BuildUnit(RobotType.POLITICIAN, 35);
 		S41 = new BuildUnit(RobotType.SLANDERER, 41);
 		initialBuildCycle = new BuildUnit[] { S130, M1, P18, S41, S41, S41, P18, S41, S41, P18, S41, S41, P18, S41, S41,
-				P18, S41, S41, P18, S41 };
-		regularBuildCycle = new BuildUnit[] { P18, S41, M1, P18, S41, M1, P35 };
+				P18, S41, S41, P18, S41, P18 };
+		regularBuildCycle = new BuildUnit[] { P35, S41, M1, P35, S41, M1, P35 };
 		priorityBuildQueue = new BuildUnit[PRIORITY_BUILD_QUEUE_SIZE];
 		availableDirs = checkAdjTiles();
 		slandererDirs = getSlandererDirs();
@@ -157,7 +157,8 @@ public class EnlightenmentCenter extends Robot {
 		if (ECToAttack == null) {
 			return;
 		}
-		System.out.println("attack EC " + enemyECsIndexForAttacks);
+		System.out.println("attack EC " + enemyECsIndexForAttacks +" at loc: "+ECToAttack);
+		rc.setIndicatorDot(ECToAttack, 0, 0, 255);
 		comms.sendFoundECMessage(ECToAttack.x, ECToAttack.y, opponentTeam, 0);
 		enemyECsIndexForAttacks++;
 	}
