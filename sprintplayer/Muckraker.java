@@ -27,6 +27,7 @@ public class Muckraker extends Robot {
 	public int explorerType;
 	public boolean edgeDetected;
 	public int lastEdgeType = -1;
+	public boolean moveToCorner;
 	// Harass Muckraker
 	public MapLocation enemyEC;
 	public MapLocation[] sitLocs;
@@ -87,6 +88,9 @@ public class Muckraker extends Robot {
 				enemyEC = new MapLocation(targetX, targetY);
 			}
 		}
+		if (cooldownTurns >= 1) {
+			return;
+		}
 		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
 		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		robotsInExpose = rc.senseNearbyRobots(12, opponentTeam);
@@ -136,11 +140,22 @@ public class Muckraker extends Robot {
 			edgeDetected = true;
 		}
 		if (edges != null && !edgeDetected) {
+			if (!moveToCorner) {
+				int edgeType = edges[0];
+				MapLocation cornerEdgeLoc = new MapLocation(edges[1], edges[2]);
+				Direction directionToCornerEdge = nav.edgeTypeToDir(edgeType);
+				if (!rc.canSenseLocation(cornerEdgeLoc)) {
+					System.out.println("Moving to corner " + nav.tryMove(directionToCornerEdge));
+					moveToCorner = true;
+					return;
+				}
+			}
 			comms.sendFoundEdgeMessage(edges[0], edges[1], edges[2]);
 			edgeDetected = true;
 			updateTargetAtEdge(edges);
 			lastEdgeType = edges[0];
 		}
+		System.out.println("Target: " + target + " Heading: " + heading);
 		nav.tryMoveToTarget(target);
 		findEC();
 	}
@@ -306,6 +321,7 @@ public class Muckraker extends Robot {
 		Direction directionToCornerEdge = nav.edgeTypeToDir(edgeType);
 		updateHeadingAtEdge(cornerEdgeLoc, edgeType, directionToCornerEdge);
 		target = new MapLocation(currLoc.x + (heading.dx * 64), currLoc.y + (heading.dy * 64));
+		moveToCorner = false;
 	}
 
 	/**
