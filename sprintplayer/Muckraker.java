@@ -88,16 +88,10 @@ public class Muckraker extends Robot {
 				enemyEC = new MapLocation(targetX, targetY);
 			}
 		}
-		if (cooldownTurns >= 1) {
-			return;
-		}
 		alliedBots = rc.senseNearbyRobots(sensorRadSq, myTeam);
 		enemyBots = rc.senseNearbyRobots(sensorRadSq, opponentTeam);
 		robotsInExpose = rc.senseNearbyRobots(12, opponentTeam);
 		robotsInSense = rc.senseNearbyRobots(30, opponentTeam);
-		if (exposeOnSight()) {
-			return;
-		}
 		// check if the enemy EC is no longer an enemy EC
 		if (enemyEC != null && rc.canSenseLocation(enemyEC)
 				&& !rc.senseRobotAtLocation(enemyEC).team.equals(opponentTeam)) {
@@ -105,6 +99,12 @@ public class Muckraker extends Robot {
 		}
 		if (beginAttack && enemyEC != null) {
 			muckrakerType = HARASS_MUCKRAKER;
+		}
+		if (cooldownTurns >= 1) {
+			return;
+		}
+		if (exposeOnSight()) {
+			return;
 		}
 		switch (muckrakerType) {
 			case EXPLORER_MUCKRAKER:
